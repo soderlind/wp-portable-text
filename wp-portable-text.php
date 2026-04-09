@@ -1,0 +1,82 @@
+<?php
+/**
+ * Plugin Name: WP Portable Text
+ * Plugin URI:  https://github.com/soderlind/wp-portable-text
+ * Description: Replaces the Gutenberg block editor with a Portable Text editor. Stores content as structured JSON, renders via PHP.
+ * Version:     0.1.7
+ * Author:      Per Soderlind
+ * Author URI:  https://developer.suspended.dev
+ * License:     GPL-2.0-or-later
+ * License URI: https://www.gnu.org/licenses/gpl-2.0.html
+ * Text Domain: wp-portable-text
+ * Requires at least: 7.0
+ * Requires PHP: 7.4
+ */
+
+declare( strict_types=1 );
+
+namespace WPPortableText;
+
+defined( 'ABSPATH' ) || exit;
+
+const VERSION    = '0.1.4';
+const PLUGIN_DIR = __DIR__;
+const PLUGIN_URL = null; // Resolved at runtime via plugin_dir_url().
+
+/**
+ * Autoloader for WPPortableText classes.
+ *
+ * Maps WPPortableText\Foo_Bar → includes/class-foo-bar.php
+ */
+spl_autoload_register(
+	static function ( string $class ): void {
+		$prefix = 'WPPortableText\\';
+		if ( 0 !== strpos( $class, $prefix ) ) {
+			return;
+		}
+
+		$relative = substr( $class, strlen( $prefix ) );
+		$file     = PLUGIN_DIR . '/includes/class-' . strtolower( str_replace( '_', '-', $relative ) ) . '.php';
+
+		if ( file_exists( $file ) ) {
+			require_once $file;
+		}
+	}
+);
+
+/**
+ * Return the plugin URL (cached).
+ */
+function plugin_url(): string {
+	static $url;
+	if ( null === $url ) {
+		$url = plugin_dir_url( __FILE__ );
+	}
+	return $url;
+}
+
+/**
+ * Bootstrap the plugin on plugins_loaded.
+ */
+add_action(
+	'plugins_loaded',
+	static function (): void {
+		// Phase 1: Replace the block editor.
+		$editor = new Editor();
+		$editor->register();
+
+		// Phase 1: Content filtering (kses bypass for JSON).
+		$content_filter = new Content_Filter();
+		$content_filter->register();
+
+		// Phase 2: Frontend rendering (PT JSON → HTML).
+		$renderer = new Renderer();
+		$renderer->register();
+
+		// Phase 3: Migration CLI command.
+		if ( defined( 'WP_CLI' ) && WP_CLI ) {
+			$migration = new Migration();
+			$migration->register();
+		}
+	}
+);

@@ -1,0 +1,108 @@
+# WP Portable Text
+
+```diff
+- ALPHA - Not ready for production use. Expect bugs and breaking changes.
+```
+
+A WordPress plugin that replaces the Gutenberg block editor with a [Portable Text](https://www.portabletext.org/) editor. Content is stored as structured JSON in `post_content` and rendered to HTML via PHP on the front end.
+
+## Why Portable Text?
+
+Portable Text is a JSON-based rich text specification created by Sanity.io. Unlike Gutenberg's HTML comment delimiters, PT stores content as a clean, typed data structure — making it easy to render to any format (HTML, Markdown, RSS, email, native apps) and query programmatically.
+
+## Features
+
+- **Rich text editor** powered by `@portabletext/editor` with toolbar, keyboard shortcuts, and inline preview
+- **Decorators:** bold, italic, underline, strikethrough, code, subscript, superscript
+- **Styles:** paragraph, h1–h6, blockquote
+- **Annotations:** links (with popover for editing/removing)
+- **Lists:** bullet and numbered
+- **Block objects:** separator (hr), image (via WP media library), code block (with language selector), embed
+- **Click-to-edit** image blocks with alt text, caption, and replace support
+- **Preview panel** below the editor with JSON, HTML, and Markdown toggle views
+- **PHP renderer** converts PT JSON → HTML on `the_content`, with filters for customization
+- **Plaintext search** — `post_content_filtered` is populated with a plain-text version for WordPress search
+- **HTML → PT migration** for existing content using DOMDocument
+- **WP-CLI command** `wp portable-text migrate` with `--dry-run`, `--post-type`, `--ids`, `--limit` options
+
+## Requirements
+
+- WordPress 7.0+
+- PHP 7.4+
+- Node.js 18+ (for building)
+
+## Installation
+
+```bash
+cd wp-content/plugins/wp-portable-text
+npm install
+npm run build
+```
+
+Activate the plugin in **Plugins → Installed Plugins**.
+
+## Development
+
+```bash
+npm run start    # Watch mode with hot reload
+npm run build    # Production build
+npm run lint:js  # Lint TypeScript/JavaScript
+npm run lint:css # Lint CSS
+```
+
+## Project Structure
+
+```
+wp-portable-text.php          Plugin bootstrap and autoloader
+includes/
+  class-editor.php            Disables Gutenberg, mounts PT editor, enqueues assets
+  class-content-filter.php    Bypasses kses for PT JSON, populates plaintext for search
+  class-renderer.php          the_content filter: PT JSON → HTML
+  class-migration.php         WP-CLI migrate command, HTML → PT conversion
+src/editor/
+  index.tsx                   React app entry, render functions for all PT elements
+  schema.ts                   PT schema definition (decorators, styles, annotations, etc.)
+  serializers.ts              Client-side PT → HTML and PT → Markdown serializers
+  styles.css                  Editor and toolbar styles
+  types.ts                    TypeScript type declarations
+  components/
+    Toolbar.tsx               Toolbar with style dropdown, decorators, annotations, lists, block objects
+    PreviewPanel.tsx           JSON / HTML / Markdown preview toggle
+```
+
+## Schema
+
+The editor's Portable Text schema is defined in `src/editor/schema.ts`:
+
+| Type            | Values                                                              |
+|-----------------|---------------------------------------------------------------------|
+| **Decorators**  | strong, em, underline, strike-through, code, subscript, superscript |
+| **Styles**      | normal, h1–h6, blockquote                                          |
+| **Annotations** | link (href)                                                         |
+| **Lists**       | bullet, number                                                      |
+| **Block objects**| break, image (src, alt, caption, attachmentId), codeBlock (code, language), embed (url) |
+
+## PHP Filters
+
+Customize the HTML output via filters on the PHP renderer:
+
+- `wp_portable_text_render_block` — Filter each block's HTML
+- `wp_portable_text_render_inline` — Filter inline element HTML
+- `wp_portable_text_render_annotation` — Filter annotation (e.g. link) HTML
+
+## How It Works
+
+1. The plugin disables the block editor and replaces it with the PT editor via the `replace_editor` hook
+2. Content is saved as JSON in `post_content`; a plaintext version goes to `post_content_filtered`
+3. On the front end, `the_content` filter deserializes the JSON and renders HTML using the PHP renderer
+4. The REST API includes a `rendered_content` field with the HTML output
+
+## Technical Notes
+
+- Bundles React 19 separately from WordPress's React 18 (required by `@portabletext/editor` v6)
+- Custom webpack config via `@wordpress/scripts` with `DependencyExtractionPlugin` returning `false` for React modules
+- Image insertion uses `editor.send('insert.block object')` directly (not `useBlockObjectButton`) because the WP media modal causes the editor to lose focus
+
+## License
+
+GPL-2.0-or-later

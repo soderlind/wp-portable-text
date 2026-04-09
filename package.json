@@ -1,0 +1,25 @@
+{
+	"name": "wp-portable-text",
+	"version": "0.1.7",
+	"private": true,
+	"description": "Portable Text editor for WordPress",
+	"scripts": {
+		"build": "wp-scripts build",
+		"start": "wp-scripts start",
+		"lint:js": "wp-scripts lint-js src/",
+		"lint:css": "wp-scripts lint-style src/"
+	},
+	"dependencies": {
+		"@portabletext/editor": "^6.0.0",
+		"@portabletext/keyboard-shortcuts": "^2.0.0",
+		"@portabletext/toolbar": "^7.0.0",
+		"react": "^19.1.0",
+		"react-dom": "^19.1.0"
+	},
+	"devDependencies": {
+		"@types/react": "^19.0.0",
+		"@types/react-dom": "^19.0.0",
+		"@wordpress/scripts": "^30.0.0",
+		"typescript": "^5.0.0"
+	}
+}
