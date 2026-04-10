@@ -27,6 +27,9 @@ class Renderer {
 		// Provide PT-aware excerpt generation.
 		add_filter( 'wp_trim_excerpt', [ $this, 'trim_excerpt' ], 5, 2 );
 
+		// Show rendered HTML in revision diffs instead of raw JSON.
+		add_filter( '_wp_post_revision_field_post_content', [ $this, 'render_revision_field' ], 10, 4 );
+
 		// REST API: expose PT JSON alongside rendered HTML.
 		add_action( 'rest_api_init', [ $this, 'register_rest_fields' ] );
 	}
@@ -50,6 +53,33 @@ class Renderer {
 		}
 
 		return $this->blocks_to_html( $decoded );
+	}
+
+	/**
+	 * Convert PT JSON to HTML for the revision diff screen.
+	 *
+	 * WordPress passes the raw post_content through this filter before
+	 * computing the text diff. By rendering PT JSON to HTML here, the
+	 * revision comparison shows readable content instead of raw JSON.
+	 *
+	 * @param string       $value    The field value (post_content).
+	 * @param string       $field    The field name.
+	 * @param \WP_Post|false $post   The revision post object.
+	 * @param string       $context  'from' or 'to'.
+	 * @return string
+	 */
+	public function render_revision_field( $value, $field = '', $post = false, $context = '' ): string {
+		if ( ! is_string( $value ) || '' === $value ) {
+			return (string) $value;
+		}
+
+		$decoded = json_decode( $value, true );
+
+		if ( is_array( $decoded ) && ! empty( $decoded ) && isset( $decoded[0]['_type'] ) ) {
+			return $this->blocks_to_html( $decoded );
+		}
+
+		return $value;
 	}
 
 	/**

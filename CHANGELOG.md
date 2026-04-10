@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.8] - 2026-04-10
+
+### Added
+
+- Revision diffs now display rendered HTML instead of raw JSON via `_wp_post_revision_field_post_content` filter. JSON remains stored in `post_content`.
+- Editor area is now vertically resizable (CSS `resize: vertical`), matching the classic WP editor.
+
 ## [0.1.7] - 2026-04-10
 
 ### Fixed
