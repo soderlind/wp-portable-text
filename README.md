@@ -4,7 +4,7 @@
 - ALPHA - Not ready for production use. Expect bugs and breaking changes.
 ```
 
->You should read the [CHANGELOG](CHANGELOG.md) for the latest updates and progress.
+>You should review the [CHANGELOG](CHANGELOG.md) for recent changes and the [REST API docs](docs/REST.md) for details on the REST endpoints and JSON schema.
 
 A WordPress plugin that replaces the Gutenberg block editor with a [Portable Text](https://www.portabletext.org/) editor. Content is stored as structured JSON in `post_content` and rendered to HTML via PHP on the front end.
 

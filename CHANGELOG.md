@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.9] - 2026-04-10
+
+### Added
+
+- Query API at `/wp-json/wp-portable-text/v1/` with two endpoints:
+  - `/query` — find posts by block type, style, or mark/annotation presence.
+  - `/blocks` — extract specific blocks across posts (e.g., all images, all code blocks filtered by language).
+- 11 new PHPUnit tests for the Query class (68 total).
+- Query API documented in `docs/REST.md`.
+
 ## [0.1.8] - 2026-04-10
 
 ### Added
