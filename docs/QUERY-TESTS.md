@@ -66,33 +66,80 @@ X-WP-TotalPages: 18
 ### Filter by annotation (`has=link`)
 
 ```bash
-curl -s "http://plugins.local/subsite23/wp-json/wp-portable-text/v1/query?has=link&per_page=50"
+curl -s "http://plugins.local/subsite23/wp-json/wp-portable-text/v1/query?has=link&per_page=3"
 ```
 
 ```
-Results with links: 49
-  Post 60: WordPress Plugin Testing Guide — 1 matched blocks
-  Post 59: WordPress CI/CD Pipeline Setup — 1 matched blocks
-  Post 58: Building a Custom Block Editor — 1 matched blocks
-  Post 57: WordPress Performance Checklist — 1 matched blocks
-  ...
-  Post 12: Modern CSS Grid Layout Techniques — 1 matched blocks
+X-WP-Total: 49
+X-WP-TotalPages: 17
+```
+
+```json
+[
+  {
+    "id": 60,
+    "title": "WordPress Plugin Testing Guide",
+    "date": "2026-04-10 08:18:39",
+    "link": "http://plugins.local/subsite23/2026/04/10/wordpress-plugin-testing-guide/",
+    "portable_text": ["..."],
+    "matched_blocks": [
+      {
+        "_type": "block",
+        "style": "normal",
+        "children": [
+          { "_type": "span", "text": "For more details, check the ", "marks": [] },
+          { "_type": "span", "text": "official documentation", "marks": ["k0012"] },
+          { "_type": "span", "text": " which covers all the edge cases and advanced usage patterns.", "marks": [] }
+        ],
+        "markDefs": [{ "_type": "link", "_key": "k0012", "href": "https://developer.wordpress.org/" }]
+      }
+    ]
+  },
+  { "id": 59, "title": "WordPress CI/CD Pipeline Setup", "matched_blocks": ["..."] },
+  { "id": 58, "title": "Building a Custom Block Editor", "matched_blocks": ["..."] }
+]
 ```
 
 ### Filter by mark (`has=strong`)
 
 ```bash
-curl -s "http://plugins.local/subsite23/wp-json/wp-portable-text/v1/query?has=strong&per_page=3"
+curl -s "http://plugins.local/subsite23/wp-json/wp-portable-text/v1/query?has=strong&per_page=2"
 ```
 
 ```
 X-WP-Total: 52
-X-WP-TotalPages: 18
+X-WP-TotalPages: 26
+```
 
-Results: 3
-  Post 111: Created via REST API — 1 matched blocks
-  Post 60: WordPress Plugin Testing Guide — 1 matched blocks
-  Post 59: WordPress CI/CD Pipeline Setup — 1 matched blocks
+```json
+[
+  {
+    "id": 111,
+    "title": "Created via REST API",
+    "date": "2026-04-10 08:21:11",
+    "link": "http://plugins.local/subsite23/2026/04/10/created-via-rest-api/",
+    "portable_text": ["..."],
+    "matched_blocks": [
+      {
+        "_type": "block",
+        "_key": "rest1",
+        "style": "normal",
+        "children": [
+          { "_type": "span", "text": "This post was created via the REST API with ", "marks": [] },
+          { "_type": "span", "text": "Portable Text", "marks": ["strong"] },
+          { "_type": "span", "text": " content.", "marks": [] }
+        ],
+        "markDefs": []
+      }
+    ]
+  },
+  {
+    "id": 60,
+    "title": "WordPress Plugin Testing Guide",
+    "portable_text": ["..."],
+    "matched_blocks": ["..."]
+  }
+]
 ```
 
 ### Filter by block type (`break`)
@@ -101,36 +148,88 @@ Results: 3
 curl -s "http://plugins.local/subsite23/wp-json/wp-portable-text/v1/query?block_type=break&per_page=3"
 ```
 
-```
-Posts with break blocks: 2
-  Post 60: WordPress Plugin Testing Guide — 1 matched
-  Post 59: WordPress CI/CD Pipeline Setup — 1 matched
+```json
+[
+  {
+    "id": 60,
+    "title": "WordPress Plugin Testing Guide",
+    "date": "2026-04-10 08:18:39",
+    "link": "http://plugins.local/subsite23/2026/04/10/wordpress-plugin-testing-guide/",
+    "portable_text": ["..."],
+    "matched_blocks": [{ "_type": "break", "_key": "k0028" }]
+  },
+  {
+    "id": 59,
+    "title": "WordPress CI/CD Pipeline Setup",
+    "date": "2026-04-10 08:18:39",
+    "link": "http://plugins.local/subsite23/2026/04/10/wordpress-ci-cd-pipeline-setup/",
+    "portable_text": ["..."],
+    "matched_blocks": [{ "_type": "break", "_key": "k0028" }]
+  }
+]
 ```
 
 ### Filter by style (`blockquote`)
 
 ```bash
-curl -s "http://plugins.local/subsite23/wp-json/wp-portable-text/v1/query?style=blockquote&per_page=50"
+curl -s "http://plugins.local/subsite23/wp-json/wp-portable-text/v1/query?style=blockquote&per_page=1"
 ```
 
 ```
-Posts with blockquote: 49
+X-WP-Total: 49
+X-WP-TotalPages: 49
+```
+
+```json
+[
+  {
+    "id": 60,
+    "title": "WordPress Plugin Testing Guide",
+    "date": "2026-04-10 08:18:39",
+    "link": "http://plugins.local/subsite23/2026/04/10/wordpress-plugin-testing-guide/",
+    "portable_text": ["..."],
+    "matched_blocks": [
+      {
+        "_type": "block",
+        "style": "blockquote",
+        "children": [{ "_type": "span", "text": "Premature optimization is the root of all evil.", "marks": ["em"] }],
+        "markDefs": []
+      }
+    ]
+  }
+]
 ```
 
 ### Query pages (`post_type=page`)
 
 ```bash
-curl -s "http://plugins.local/subsite23/wp-json/wp-portable-text/v1/query?post_type=page&per_page=3"
+curl -s "http://plugins.local/subsite23/wp-json/wp-portable-text/v1/query?post_type=page&per_page=2"
 ```
 
 ```
 X-WP-Total: 51
-X-WP-TotalPages: 17
+X-WP-TotalPages: 26
+```
 
-Page results: 3
-  Page 110: Press Kit and Resources — 13 blocks
-  Page 109: Partner Program — 13 blocks
-  Page 108: Compliance Information — 13 blocks
+```json
+[
+  {
+    "id": 110,
+    "title": "Press Kit and Resources",
+    "date": "2026-04-10 08:18:39",
+    "link": "http://plugins.local/subsite23/press-kit-and-resources/",
+    "portable_text": ["..."],
+    "matched_blocks": null
+  },
+  {
+    "id": 109,
+    "title": "Partner Program",
+    "date": "2026-04-10 08:18:39",
+    "link": "http://plugins.local/subsite23/partner-program/",
+    "portable_text": ["..."],
+    "matched_blocks": null
+  }
+]
 ```
 
 ## `/blocks` endpoint
@@ -138,37 +237,88 @@ Page results: 3
 ### Extract code blocks
 
 ```bash
-curl -s "http://plugins.local/subsite23/wp-json/wp-portable-text/v1/blocks?block_type=codeBlock&per_page=5"
+curl -s "http://plugins.local/subsite23/wp-json/wp-portable-text/v1/blocks?block_type=codeBlock&per_page=3"
 ```
 
 ```
 X-WP-Total: 49
-X-WP-TotalPages: 10
+X-WP-TotalPages: 17
+```
 
-Code blocks returned: 5
-  [css]        from Post 60: "WordPress Plugin Testing Guide"
-  [bash]       from Post 59: "WordPress CI/CD Pipeline Setup"
-  [typescript] from Post 58: "Building a Custom Block Editor"
-  [javascript] from Post 57: "WordPress Performance Checklist"
-  [php]        from Post 56: "Headless WordPress with Next.js"
+```json
+[
+  {
+    "block": {
+      "_type": "codeBlock",
+      "_key": "k0022",
+      "code": ".wp-portable-text-editor {\n  display: flex;\n  flex-directi...",
+      "language": "css"
+    },
+    "post_id": 60,
+    "title": "WordPress Plugin Testing Guide",
+    "link": "http://plugins.local/subsite23/2026/04/10/wordpress-plugin-testing-guide/"
+  },
+  {
+    "block": {
+      "_type": "codeBlock",
+      "_key": "k0022",
+      "code": "#!/bin/bash\n\n# Deploy WordPress plugin\nVERSION=$(jq -r .v...",
+      "language": "bash"
+    },
+    "post_id": 59,
+    "title": "WordPress CI/CD Pipeline Setup",
+    "link": "http://plugins.local/subsite23/2026/04/10/wordpress-ci-cd-pipeline-setup/"
+  },
+  {
+    "block": {
+      "_type": "codeBlock",
+      "_key": "k0022",
+      "code": "interface PortableTextBlock {\n  _type: string;\n  _key: str...",
+      "language": "typescript"
+    },
+    "post_id": 58,
+    "title": "Building a Custom Block Editor",
+    "link": "http://plugins.local/subsite23/2026/04/10/building-a-custom-block-editor/"
+  }
+]
 ```
 
 ### Filter code blocks by language (`php`)
 
 ```bash
-curl -s "http://plugins.local/subsite23/wp-json/wp-portable-text/v1/blocks?block_type=codeBlock&language=php&per_page=5"
+curl -s "http://plugins.local/subsite23/wp-json/wp-portable-text/v1/blocks?block_type=codeBlock&language=php&per_page=2"
 ```
 
 ```
 X-WP-Total: 9
-X-WP-TotalPages: 2
+X-WP-TotalPages: 5
+```
 
-PHP code blocks: 5
-  Post 56: "Headless WordPress with Next.js"
-  Post 51: "WordPress Action Scheduler Guide"
-  Post 46: "Email Templating in WordPress"
-  Post 41: "WordPress Rewrite API Guide"
-  Post 36: "WordPress Object Caching Deep Dive"
+```json
+[
+  {
+    "block": {
+      "_type": "codeBlock",
+      "_key": "k0022",
+      "code": "<?php\n\nfunction get_custom_data( int $id ): array {\n    $...",
+      "language": "php"
+    },
+    "post_id": 56,
+    "title": "Headless WordPress with Next.js",
+    "link": "http://plugins.local/subsite23/2026/04/10/headless-wordpress-with-next-js/"
+  },
+  {
+    "block": {
+      "_type": "codeBlock",
+      "_key": "k0022",
+      "code": "<?php\n\nfunction get_custom_data( int $id ): array {\n    $...",
+      "language": "php"
+    },
+    "post_id": 51,
+    "title": "WordPress Action Scheduler Guide",
+    "link": "http://plugins.local/subsite23/2026/04/10/wordpress-action-scheduler-guide/"
+  }
+]
 ```
 
 ### Extract h2 headings
@@ -180,11 +330,99 @@ curl -s "http://plugins.local/subsite23/wp-json/wp-portable-text/v1/blocks?block
 ```
 X-WP-Total: 49
 X-WP-TotalPages: 17
+```
 
-h2 blocks: 3
-  Post 60: "Documentation Writing Guide"
-  Post 59: "Code Review Best Practices"
-  Post 58: "Video Embedding Standards"
+```json
+[
+  {
+    "block": {
+      "_type": "block",
+      "_key": "k0001",
+      "style": "h2",
+      "children": [{ "_type": "span", "_key": "k0002", "text": "Documentation Writing Guide", "marks": [] }],
+      "markDefs": []
+    },
+    "post_id": 60,
+    "title": "WordPress Plugin Testing Guide",
+    "link": "http://plugins.local/subsite23/2026/04/10/wordpress-plugin-testing-guide/"
+  },
+  {
+    "block": {
+      "_type": "block",
+      "_key": "k0001",
+      "style": "h2",
+      "children": [{ "_type": "span", "_key": "k0002", "text": "Code Review Best Practices", "marks": [] }],
+      "markDefs": []
+    },
+    "post_id": 59,
+    "title": "WordPress CI/CD Pipeline Setup",
+    "link": "http://plugins.local/subsite23/2026/04/10/wordpress-ci-cd-pipeline-setup/"
+  },
+  {
+    "block": {
+      "_type": "block",
+      "_key": "k0001",
+      "style": "h2",
+      "children": [{ "_type": "span", "_key": "k0002", "text": "Video Embedding Standards", "marks": [] }],
+      "markDefs": []
+    },
+    "post_id": 58,
+    "title": "Building a Custom Block Editor",
+    "link": "http://plugins.local/subsite23/2026/04/10/building-a-custom-block-editor/"
+  }
+]
+```
+
+### Extract images from pages
+
+```bash
+curl -s "http://plugins.local/subsite23/wp-json/wp-portable-text/v1/blocks?block_type=image&post_type=page&per_page=3"
+```
+
+```
+X-WP-Total: 100
+X-WP-TotalPages: 5
+```
+
+```json
+[
+  {
+    "block": {
+      "_type": "image",
+      "_key": "img110a",
+      "src": "https://picsum.photos/seed/mountains110/800/450",
+      "alt": "Mountains — illustration for Press Kit and Resources",
+      "caption": "An overview of the key concepts discussed in this guide."
+    },
+    "post_id": 110,
+    "title": "Press Kit and Resources",
+    "link": "http://plugins.local/subsite23/press-kit-and-resources/"
+  },
+  {
+    "block": {
+      "_type": "image",
+      "_key": "img110b",
+      "src": "https://picsum.photos/seed/aerial110/720/480",
+      "alt": "Aerial — related visual for Press Kit and Resources",
+      "caption": "Illustration of the data flow pattern."
+    },
+    "post_id": 110,
+    "title": "Press Kit and Resources",
+    "link": "http://plugins.local/subsite23/press-kit-and-resources/"
+  },
+  {
+    "block": {
+      "_type": "image",
+      "_key": "img109a",
+      "src": "https://picsum.photos/seed/ocean109/960/540",
+      "alt": "Ocean — illustration for Partner Program",
+      "caption": "Overview of the system components."
+    },
+    "post_id": 109,
+    "title": "Partner Program",
+    "link": "http://plugins.local/subsite23/partner-program/"
+  }
+]
 ```
 
 ## Validation (error cases)
