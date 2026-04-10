@@ -12,8 +12,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Query API at `/wp-json/wp-portable-text/v1/` with two endpoints:
   - `/query` — find posts by block type, style, or mark/annotation presence.
   - `/blocks` — extract specific blocks across posts (e.g., all images, all code blocks filtered by language).
+- REST API write support: `portable_text` field is now read-write; create/update posts with PT JSON via the REST API.
+- Query API documented in `docs/QUERY.md`; REST write examples added to `docs/REST.md`.
 - 11 new PHPUnit tests for the Query class (68 total).
-- Query API documented in `docs/REST.md`.
+
+### Fixed
+
+- Query API `enum` and `maximum` constraints now enforced via `validate_callback` (returns 400 for invalid `block_type` or out-of-range `per_page`).
 
 ## [0.1.8] - 2026-04-10
 

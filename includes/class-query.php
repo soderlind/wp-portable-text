@@ -318,6 +318,7 @@ class Query {
 			'block_type' => [
 				'type'              => 'string',
 				'enum'              => self::BLOCK_TYPES,
+				'validate_callback' => 'rest_validate_request_arg',
 				'sanitize_callback' => 'sanitize_text_field',
 			],
 			'has'        => [
@@ -335,12 +336,14 @@ class Query {
 				'default'           => 10,
 				'minimum'           => 1,
 				'maximum'           => self::MAX_PER_PAGE,
+				'validate_callback' => 'rest_validate_request_arg',
 				'sanitize_callback' => 'absint',
 			],
 			'page'       => [
 				'type'              => 'integer',
 				'default'           => 1,
 				'minimum'           => 1,
+				'validate_callback' => 'rest_validate_request_arg',
 				'sanitize_callback' => 'absint',
 			],
 		];
@@ -362,6 +365,7 @@ class Query {
 				'type'              => 'string',
 				'required'          => true,
 				'enum'              => self::BLOCK_TYPES,
+				'validate_callback' => 'rest_validate_request_arg',
 				'sanitize_callback' => 'sanitize_text_field',
 			],
 			'language'   => [
@@ -379,12 +383,14 @@ class Query {
 				'default'           => 20,
 				'minimum'           => 1,
 				'maximum'           => self::MAX_PER_PAGE,
+				'validate_callback' => 'rest_validate_request_arg',
 				'sanitize_callback' => 'absint',
 			],
 			'page'       => [
 				'type'              => 'integer',
 				'default'           => 1,
 				'minimum'           => 1,
+				'validate_callback' => 'rest_validate_request_arg',
 				'sanitize_callback' => 'absint',
 			],
 		];

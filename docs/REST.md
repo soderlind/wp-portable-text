@@ -24,6 +24,8 @@ Each response includes both the rendered HTML and the raw Portable Text:
 | `content.raw` | `string` | Raw JSON string (requires `edit` context) |
 | `portable_text` | `array\|null` | Parsed Portable Text blocks, or `null` |
 
+The `portable_text` field is **read-write**. When reading, it returns the parsed PT blocks. When writing (POST/PUT), it validates the structure and stores the JSON in `post_content`, bypassing kses. Authentication is required for writes.
+
 ## Examples
 
 ### Fetch a single post with Portable Text
@@ -255,191 +257,189 @@ Portable Text is framework-agnostic. Official serializers exist for:
 
 ## Authentication
 
-The `portable_text` field is read-only and publicly available (same visibility as `content.rendered`). No authentication is needed for published posts.
+Reading the `portable_text` field is publicly available for published posts (same as `content.rendered`). **Writing requires authentication** — use application passwords, cookie auth, or JWT.
 
-For draft/private posts, use standard WordPress authentication (application passwords, cookie auth, or JWT).
+For draft/private posts, reading also requires authentication.
 
----
+## Creating and updating posts
 
-## Query API
+Send a `portable_text` array in the request body to create or update posts with Portable Text content. The plugin validates the PT structure, writes JSON directly to `post_content` (bypassing kses), and populates `post_content_filtered` with plaintext for search.
 
-The plugin provides a GROQ-like query API under `/wp-json/wp-portable-text/v1/` that lets you search and extract Portable Text content across posts.
-
-### Endpoints
-
-| Endpoint | Description |
-| --- | --- |
-| `GET /wp-json/wp-portable-text/v1/query` | Find posts matching block/content criteria |
-| `GET /wp-json/wp-portable-text/v1/blocks` | Extract specific blocks across posts |
-
-### `/query` — Find posts by content structure
-
-Find posts that contain specific block types, styles, or marks.
-
-**Parameters:**
-
-| Parameter | Type | Default | Description |
-| --- | --- | --- | --- |
-| `post_type` | string | `post` | Post type to search |
-| `block_type` | string | — | Filter by block `_type`: `block`, `image`, `codeBlock`, `embed`, `break` |
-| `has` | string | — | Filter posts containing this mark or annotation (e.g., `link`, `strong`, `em`) |
-| `style` | string | — | Filter posts containing blocks with this style (e.g., `h1`, `h2`, `blockquote`) |
-| `per_page` | integer | `10` | Results per page (max 100) |
-| `page` | integer | `1` | Page number |
-
-**Response headers:** `X-WP-Total`, `X-WP-TotalPages`
-
-**Examples:**
-
-Find all posts containing images:
+### Create a post
 
 ```bash
-curl -s "https://example.com/wp-json/wp-portable-text/v1/query?block_type=image" | jq .
-```
-
-```json
-[
-  {
-    "id": 42,
-    "title": "My Photo Post",
-    "date": "2026-04-10 12:00:00",
-    "link": "https://example.com/my-photo-post/",
-    "portable_text": [ ... ],
-    "matched_blocks": [
+curl -X POST "https://example.com/wp-json/wp/v2/posts" \
+  -u "username:xxxx xxxx xxxx xxxx xxxx xxxx" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "title": "My First PT Post",
+    "status": "publish",
+    "portable_text": [
       {
-        "_type": "image",
-        "_key": "img1",
-        "src": "https://example.com/wp-content/uploads/photo.jpg",
-        "alt": "A photo"
+        "_type": "block",
+        "_key": "intro",
+        "style": "h2",
+        "children": [
+          {"_type": "span", "_key": "s1", "text": "Welcome", "marks": []}
+        ],
+        "markDefs": []
+      },
+      {
+        "_type": "block",
+        "_key": "p1",
+        "style": "normal",
+        "children": [
+          {"_type": "span", "_key": "s2", "text": "This post was created via the ", "marks": []},
+          {"_type": "span", "_key": "s3", "text": "REST API", "marks": ["strong"]},
+          {"_type": "span", "_key": "s4", "text": " using Portable Text.", "marks": []}
+        ],
+        "markDefs": []
       }
     ]
-  }
-]
+  }'
 ```
 
-Find posts containing links:
+### Update an existing post
 
 ```bash
-curl -s "https://example.com/wp-json/wp-portable-text/v1/query?has=link"
+curl -X POST "https://example.com/wp-json/wp/v2/posts/42" \
+  -u "username:xxxx xxxx xxxx xxxx xxxx xxxx" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "portable_text": [
+      {
+        "_type": "block",
+        "_key": "p1",
+        "style": "normal",
+        "children": [
+          {"_type": "span", "_key": "s1", "text": "Updated content.", "marks": []}
+        ],
+        "markDefs": []
+      }
+    ]
+  }'
 ```
 
-Find posts with h2 headings:
+### Create a page
 
 ```bash
-curl -s "https://example.com/wp-json/wp-portable-text/v1/query?style=h2"
+curl -X POST "https://example.com/wp-json/wp/v2/pages" \
+  -u "username:xxxx xxxx xxxx xxxx xxxx xxxx" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "title": "About Us",
+    "status": "publish",
+    "portable_text": [
+      {
+        "_type": "block",
+        "_key": "p1",
+        "style": "normal",
+        "children": [
+          {"_type": "span", "_key": "s1", "text": "We build great things.", "marks": []}
+        ],
+        "markDefs": []
+      }
+    ]
+  }'
 ```
 
-Find posts using bold text:
+### Create with rich content (links, lists, code blocks)
 
 ```bash
-curl -s "https://example.com/wp-json/wp-portable-text/v1/query?has=strong"
+curl -X POST "https://example.com/wp-json/wp/v2/posts" \
+  -u "username:xxxx xxxx xxxx xxxx xxxx xxxx" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "title": "Rich Content Example",
+    "status": "publish",
+    "portable_text": [
+      {
+        "_type": "block",
+        "_key": "p1",
+        "style": "normal",
+        "children": [
+          {"_type": "span", "_key": "s1", "text": "Visit the ", "marks": []},
+          {"_type": "span", "_key": "s2", "text": "WordPress site", "marks": ["link1"]},
+          {"_type": "span", "_key": "s3", "text": " for more info.", "marks": []}
+        ],
+        "markDefs": [
+          {"_type": "link", "_key": "link1", "href": "https://wordpress.org"}
+        ]
+      },
+      {
+        "_type": "block",
+        "_key": "li1",
+        "style": "normal",
+        "listItem": "bullet",
+        "level": 1,
+        "children": [
+          {"_type": "span", "_key": "s4", "text": "First item", "marks": []}
+        ],
+        "markDefs": []
+      },
+      {
+        "_type": "block",
+        "_key": "li2",
+        "style": "normal",
+        "listItem": "bullet",
+        "level": 1,
+        "children": [
+          {"_type": "span", "_key": "s5", "text": "Second item", "marks": []}
+        ],
+        "markDefs": []
+      },
+      {
+        "_type": "codeBlock",
+        "_key": "cb1",
+        "code": "console.log(\"Hello from PT!\");",
+        "language": "javascript"
+      }
+    ]
+  }'
 ```
 
-Search pages instead of posts:
+### JavaScript example
 
-```bash
-curl -s "https://example.com/wp-json/wp-portable-text/v1/query?post_type=page&block_type=codeBlock"
+```js
+const response = await fetch('/wp-json/wp/v2/posts', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    'Authorization': 'Basic ' + btoa('username:xxxx xxxx xxxx xxxx xxxx xxxx'),
+  },
+  body: JSON.stringify({
+    title: 'Created from JS',
+    status: 'publish',
+    portable_text: [
+      {
+        _type: 'block',
+        _key: 'p1',
+        style: 'normal',
+        children: [
+          { _type: 'span', _key: 's1', text: 'Hello from JavaScript!', marks: [] },
+        ],
+        markDefs: [],
+      },
+    ],
+  }),
+});
+
+const post = await response.json();
+console.log(`Created post #${post.id}`);
 ```
 
-### `/blocks` — Extract blocks across posts
+### Validation
 
-Returns a flat list of blocks (with post context) matching the criteria. Useful for building indexes, galleries, or aggregations.
-
-**Parameters:**
-
-| Parameter | Type | Default | Description |
-| --- | --- | --- | --- |
-| `post_type` | string | `post` | Post type to search |
-| `block_type` | string | **required** | Block type to extract: `block`, `image`, `codeBlock`, `embed`, `break` |
-| `language` | string | — | Filter code blocks by language |
-| `style` | string | — | Filter text blocks by style |
-| `per_page` | integer | `20` | Results per page (max 100) |
-| `page` | integer | `1` | Page number |
-
-**Response headers:** `X-WP-Total`, `X-WP-TotalPages`
-
-**Examples:**
-
-Get all images across all posts (e.g., for a site-wide gallery):
-
-```bash
-curl -s "https://example.com/wp-json/wp-portable-text/v1/blocks?block_type=image" | jq .
-```
+The endpoint validates that `portable_text` is a sequential array where each block has a `_type` property. Invalid payloads return a `400` error:
 
 ```json
-[
-  {
-    "block": {
-      "_type": "image",
-      "_key": "img1",
-      "src": "https://example.com/wp-content/uploads/sunset.jpg",
-      "alt": "Sunset over the lake",
-      "caption": "Photo by Jane Doe"
-    },
-    "post_id": 42,
-    "title": "Weekend Trip",
-    "link": "https://example.com/weekend-trip/"
-  },
-  {
-    "block": {
-      "_type": "image",
-      "_key": "img2",
-      "src": "https://example.com/wp-content/uploads/mountain.jpg",
-      "alt": "Mountain view"
-    },
-    "post_id": 55,
-    "title": "Hiking Guide",
-    "link": "https://example.com/hiking-guide/"
-  }
-]
+{
+  "code": "invalid_portable_text",
+  "message": "Each block must have a _type property.",
+  "data": { "status": 400 }
+}
 ```
 
-Get all PHP code blocks:
+## See also
 
-```bash
-curl -s "https://example.com/wp-json/wp-portable-text/v1/blocks?block_type=codeBlock&language=php"
-```
-
-Get all JavaScript code blocks:
-
-```bash
-curl -s "https://example.com/wp-json/wp-portable-text/v1/blocks?block_type=codeBlock&language=javascript"
-```
-
-Get all h2 headings across posts:
-
-```bash
-curl -s "https://example.com/wp-json/wp-portable-text/v1/blocks?block_type=block&style=h2"
-```
-
-Paginate through results:
-
-```bash
-curl -s "https://example.com/wp-json/wp-portable-text/v1/blocks?block_type=image&per_page=5&page=2"
-```
-
-### JavaScript examples
-
-Build a site-wide image gallery:
-
-```js
-const response = await fetch('/wp-json/wp-portable-text/v1/blocks?block_type=image&per_page=50');
-const images = await response.json();
-const total = response.headers.get('X-WP-Total');
-
-images.forEach(({ block, title, link }) => {
-  console.log(`${block.alt} — from "${title}" (${link})`);
-});
-```
-
-Find posts with code snippets in a specific language:
-
-```js
-const response = await fetch('/wp-json/wp-portable-text/v1/query?block_type=codeBlock');
-const posts = await response.json();
-
-posts.forEach(post => {
-  const codeBlocks = post.matched_blocks;
-  console.log(`${post.title}: ${codeBlocks.length} code block(s)`);
-});
-```
+- [Query API](QUERY.md) — GROQ-like endpoints for searching and extracting Portable Text content across posts.
