@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.10] - 2026-04-11
+
+### Changed
+
+- Bump `@wordpress/scripts` from ^30 to ^31 (31.8.0).
+- Bump `typescript` from ^5 to ^6 (6.0.2).
+- Bump `phpunit/phpunit` from ^9.6 to ^12 (12.5.17); minimum PHP raised to 8.2.
+- Update `phpunit.xml` schema from 9.6 to 12.5 (`<coverage>` → `<source>`).
+
 ## [0.1.9] - 2026-04-10
 
 ### Added
