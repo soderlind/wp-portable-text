@@ -14,7 +14,7 @@ use PHPUnit\Framework\TestCase;
 use WPPortableText\Query;
 
 /**
- * Testable subclass that overrides create_wp_query.
+ * Testable subclass that overrides create_wp_query and cache methods.
  */
 class TestableQuery extends Query {
 
@@ -25,12 +25,23 @@ class TestableQuery extends Query {
 
 	public int $mock_max_num_pages = 1;
 
+	/** @var array<string,mixed> In-memory cache store. */
+	public array $cache_store = [];
+
 	protected function create_wp_query( array $args ): object {
 		return (object) [
 			'posts'         => $this->mock_posts,
 			'found_posts'   => $this->mock_found_posts,
 			'max_num_pages' => $this->mock_max_num_pages,
 		];
+	}
+
+	protected function cache_get( string $key ) {
+		return $this->cache_store[ $key ] ?? false;
+	}
+
+	protected function cache_set( string $key, array $value ): void {
+		$this->cache_store[ $key ] = $value;
 	}
 }
 
@@ -60,6 +71,18 @@ class QueryTest extends TestCase {
 			->once()
 			->with( 'rest_api_init', [ $real_query, 'register_routes' ] );
 
+		Functions\expect( 'add_action' )
+			->once()
+			->with( 'save_post', [ $real_query, 'flush_cache' ] );
+
+		Functions\expect( 'add_action' )
+			->once()
+			->with( 'delete_post', [ $real_query, 'flush_cache' ] );
+
+		Functions\expect( 'add_action' )
+			->once()
+			->with( 'wp_trash_post', [ $real_query, 'flush_cache' ] );
+
 		$real_query->register();
 	}
 
@@ -77,6 +100,8 @@ class QueryTest extends TestCase {
 			->andReturnUsing( function ( string $key ) use ( $params ) {
 				return $params[ $key ] ?? null;
 			} );
+		$request->shouldReceive( 'get_query_params' )
+			->andReturn( $params );
 		return $request;
 	}
 
@@ -185,6 +210,7 @@ class QueryTest extends TestCase {
 			'sanitize_key'        => static function ( string $s ): string { return strtolower( $s ); },
 			'sanitize_text_field' => static function ( string $s ): string { return $s; },
 			'absint'              => static function ( $n ): int { return abs( (int) $n ); },
+			'wp_json_encode'      => static function ( $data ): string { return json_encode( $data ); },
 		] );
 	}
 
@@ -428,5 +454,103 @@ class QueryTest extends TestCase {
 		$data     = $response->get_data();
 
 		$this->assertCount( 1, $data );
+	}
+
+	// --- caching ---
+
+	public function test_query_response_is_cached(): void {
+		$this->stub_wp_functions();
+
+		$blocks = [ $this->text_block( 'Hello' ) ];
+		$post   = $this->make_post( 1, $blocks, 'Cached Post' );
+
+		$this->query->mock_posts         = [ $post ];
+		$this->query->mock_found_posts   = 1;
+		$this->query->mock_max_num_pages = 1;
+
+		$request = $this->make_request( [ 'post_type' => 'post' ] );
+
+		// First call — MISS.
+		$response = $this->query->handle_query( $request );
+		$headers  = $response->get_headers();
+		$this->assertSame( 'MISS', $headers['X-WP-PT-Cache'] );
+
+		// Second call — HIT from cache.
+		$response2 = $this->query->handle_query( $request );
+		$headers2  = $response2->get_headers();
+		$this->assertSame( 'HIT', $headers2['X-WP-PT-Cache'] );
+
+		// Data should be identical.
+		$this->assertSame( $response->get_data(), $response2->get_data() );
+		$this->assertSame( $headers['X-WP-Total'], $headers2['X-WP-Total'] );
+	}
+
+	public function test_blocks_response_is_cached(): void {
+		$this->stub_wp_functions();
+
+		$post = $this->make_post( 1, [
+			$this->image_block( 'https://example.com/a.jpg', 'Photo' ),
+		], 'Image Post' );
+
+		$this->query->mock_posts         = [ $post ];
+		$this->query->mock_found_posts   = 1;
+		$this->query->mock_max_num_pages = 1;
+
+		$request = $this->make_request( [ 'block_type' => 'image' ] );
+
+		// First call — MISS.
+		$response = $this->query->handle_blocks( $request );
+		$this->assertSame( 'MISS', $response->get_headers()['X-WP-PT-Cache'] );
+
+		// Second call — HIT.
+		$response2 = $this->query->handle_blocks( $request );
+		$this->assertSame( 'HIT', $response2->get_headers()['X-WP-PT-Cache'] );
+		$this->assertSame( $response->get_data(), $response2->get_data() );
+	}
+
+	public function test_different_params_get_separate_cache_entries(): void {
+		$this->stub_wp_functions();
+
+		$post = $this->make_post( 1, [
+			$this->text_block( 'Hello', 'h2' ),
+			$this->text_block( 'Body' ),
+		], 'Mixed Post' );
+
+		$this->query->mock_posts         = [ $post ];
+		$this->query->mock_found_posts   = 1;
+		$this->query->mock_max_num_pages = 1;
+
+		$request_h2 = $this->make_request( [ 'style' => 'h2' ] );
+
+		$request_all = $this->make_request();
+
+		$this->query->handle_query( $request_h2 );
+		$this->query->handle_query( $request_all );
+
+		// Two entries in cache.
+		$this->assertCount( 2, $this->query->cache_store );
+	}
+
+	public function test_cache_store_cleared_on_flush(): void {
+		$this->stub_wp_functions();
+
+		$blocks = [ $this->text_block( 'Hello' ) ];
+		$post   = $this->make_post( 1, $blocks );
+
+		$this->query->mock_posts         = [ $post ];
+		$this->query->mock_found_posts   = 1;
+		$this->query->mock_max_num_pages = 1;
+
+		$request = $this->make_request();
+
+		$this->query->handle_query( $request );
+		$this->assertNotEmpty( $this->query->cache_store );
+
+		// Simulate flush — clears in-memory store.
+		$this->query->cache_store = [];
+
+		// Next call should be a MISS again.
+		$response = $this->query->handle_query( $request );
+		$this->assertSame( 'MISS', $response->get_headers()['X-WP-PT-Cache'] );
 	}
 }

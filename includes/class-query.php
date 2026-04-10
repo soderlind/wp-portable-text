@@ -46,10 +46,23 @@ class Query {
 	private const MAX_PER_PAGE = 100;
 
 	/**
+	 * Default cache TTL in seconds (5 minutes).
+	 */
+	private const CACHE_TTL = 300;
+
+	/**
+	 * Cache group prefix for transient keys.
+	 */
+	private const CACHE_PREFIX = 'wp_pt_query_';
+
+	/**
 	 * Register hooks.
 	 */
 	public function register(): void {
 		add_action( 'rest_api_init', [ $this, 'register_routes' ] );
+		add_action( 'save_post', [ $this, 'flush_cache' ] );
+		add_action( 'delete_post', [ $this, 'flush_cache' ] );
+		add_action( 'wp_trash_post', [ $this, 'flush_cache' ] );
 	}
 
 	/**
@@ -86,6 +99,18 @@ class Query {
 	 * @return WP_REST_Response|WP_Error
 	 */
 	public function handle_query( WP_REST_Request $request ) {
+		$cache_key = $this->cache_key( 'query', $request );
+		$cached    = $this->cache_get( $cache_key );
+
+		if ( false !== $cached ) {
+			$response = new WP_REST_Response( $cached['data'] );
+			foreach ( $cached['headers'] as $name => $value ) {
+				$response->header( $name, $value );
+			}
+			$response->header( 'X-WP-PT-Cache', 'HIT' );
+			return $response;
+		}
+
 		$post_type  = $request->get_param( 'post_type' ) ?? 'post';
 		$block_type = $request->get_param( 'block_type' );
 		$has        = $request->get_param( 'has' );
@@ -139,8 +164,20 @@ class Query {
 
 		$response = new WP_REST_Response( $results );
 
-		$response->header( 'X-WP-Total', (string) $query->found_posts );
-		$response->header( 'X-WP-TotalPages', (string) $query->max_num_pages );
+		$headers = [
+			'X-WP-Total'      => (string) $query->found_posts,
+			'X-WP-TotalPages' => (string) $query->max_num_pages,
+		];
+
+		foreach ( $headers as $name => $value ) {
+			$response->header( $name, $value );
+		}
+		$response->header( 'X-WP-PT-Cache', 'MISS' );
+
+		$this->cache_set( $cache_key, [
+			'data'    => $results,
+			'headers' => $headers,
+		] );
 
 		return $response;
 	}
@@ -154,6 +191,18 @@ class Query {
 	 * @return WP_REST_Response|WP_Error
 	 */
 	public function handle_blocks( WP_REST_Request $request ) {
+		$cache_key = $this->cache_key( 'blocks', $request );
+		$cached    = $this->cache_get( $cache_key );
+
+		if ( false !== $cached ) {
+			$response = new WP_REST_Response( $cached['data'] );
+			foreach ( $cached['headers'] as $name => $value ) {
+				$response->header( $name, $value );
+			}
+			$response->header( 'X-WP-PT-Cache', 'HIT' );
+			return $response;
+		}
+
 		$post_type  = $request->get_param( 'post_type' ) ?? 'post';
 		$block_type = $request->get_param( 'block_type' );
 		$language   = $request->get_param( 'language' );
@@ -208,8 +257,20 @@ class Query {
 
 		$response = new WP_REST_Response( $paged );
 
-		$response->header( 'X-WP-Total', (string) $total );
-		$response->header( 'X-WP-TotalPages', (string) max( 1, (int) ceil( $total / $per_page ) ) );
+		$headers = [
+			'X-WP-Total'      => (string) $total,
+			'X-WP-TotalPages' => (string) max( 1, (int) ceil( $total / $per_page ) ),
+		];
+
+		foreach ( $headers as $name => $value ) {
+			$response->header( $name, $value );
+		}
+		$response->header( 'X-WP-PT-Cache', 'MISS' );
+
+		$this->cache_set( $cache_key, [
+			'data'    => $paged,
+			'headers' => $headers,
+		] );
 
 		return $response;
 	}
@@ -222,6 +283,65 @@ class Query {
 	 */
 	protected function create_wp_query( array $args ): object {
 		return new \WP_Query( $args );
+	}
+
+	/**
+	 * Build a cache key from request parameters.
+	 *
+	 * @param string               $endpoint 'query' or 'blocks'.
+	 * @param WP_REST_Request      $request  Current request.
+	 * @return string Transient key (max 172 chars with prefix).
+	 */
+	private function cache_key( string $endpoint, WP_REST_Request $request ): string {
+		$params = $request->get_query_params();
+		ksort( $params );
+		$hash = md5( $endpoint . '|' . wp_json_encode( $params ) );
+		return self::CACHE_PREFIX . $hash;
+	}
+
+	/**
+	 * Get cached response data.
+	 *
+	 * @param string $key Transient key.
+	 * @return array{data: mixed, headers: array<string,string>}|false Cached data or false.
+	 */
+	protected function cache_get( string $key ) {
+		return get_transient( $key );
+	}
+
+	/**
+	 * Store response data in cache.
+	 *
+	 * @param string                          $key     Transient key.
+	 * @param array{data: mixed, headers: array<string,string>} $value   Data to cache.
+	 * @return void
+	 */
+	protected function cache_set( string $key, array $value ): void {
+		$ttl = (int) apply_filters( 'wp_portable_text_query_cache_ttl', self::CACHE_TTL );
+		if ( $ttl > 0 ) {
+			set_transient( $key, $value, $ttl );
+		}
+	}
+
+	/**
+	 * Flush all query caches.
+	 *
+	 * Deletes transients matching the cache prefix. Called on post save/delete.
+	 *
+	 * @param int $post_id Post ID (unused but required by hook signature).
+	 * @return void
+	 */
+	public function flush_cache( int $post_id = 0 ): void {
+		global $wpdb;
+		$prefix = '_transient_' . self::CACHE_PREFIX;
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery
+		$wpdb->query(
+			$wpdb->prepare(
+				"DELETE FROM $wpdb->options WHERE option_name LIKE %s OR option_name LIKE %s",
+				$prefix . '%',
+				'_transient_timeout_' . self::CACHE_PREFIX . '%'
+			)
+		);
 	}
 
 	/**

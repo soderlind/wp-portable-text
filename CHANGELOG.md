@@ -13,8 +13,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `/query` — find posts by block type, style, or mark/annotation presence.
   - `/blocks` — extract specific blocks across posts (e.g., all images, all code blocks filtered by language).
 - REST API write support: `portable_text` field is now read-write; create/update posts with PT JSON via the REST API.
+- Transient-based query cache with `X-WP-PT-Cache: HIT|MISS` header; 5-minute TTL (filterable via `wp_portable_text_query_cache_ttl`); auto-invalidates on `save_post`, `delete_post`, `wp_trash_post`.
 - Query API documented in `docs/QUERY.md`; REST write examples added to `docs/REST.md`.
-- 11 new PHPUnit tests for the Query class (68 total).
+- 15 new PHPUnit tests for the Query class (72 total).
 
 ### Fixed
 
