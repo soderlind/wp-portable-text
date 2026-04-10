@@ -4,6 +4,8 @@
 - ALPHA - Not ready for production use. Expect bugs and breaking changes.
 ```
 
+>You should review the [CHANGELOG](CHANGELOG.md) for recent changes and the [REST API docs](docs/REST.md) for details on the REST endpoints and JSON schema. [Query API](docs/QUERY.md) added in v0.1.9 allows you to find posts by block type, style, or annotation presence, and extract specific blocks across posts (e.g., all images, all code blocks filtered by language).
+
 A WordPress plugin that replaces the Gutenberg block editor with a [Portable Text](https://www.portabletext.org/) editor. Content is stored as structured JSON in `post_content` and rendered to HTML via PHP on the front end.
 
 ## Why Portable Text?
@@ -89,6 +91,14 @@ Customize the HTML output via filters on the PHP renderer:
 - `wp_portable_text_render_block` — Filter each block's HTML
 - `wp_portable_text_render_inline` — Filter inline element HTML
 - `wp_portable_text_render_annotation` — Filter annotation (e.g. link) HTML
+
+## REST API
+
+The plugin exposes a `portable_text` field on all public post types via the WordPress REST API. See [docs/REST.md](docs/REST.md) for endpoints, examples, and schema reference.
+
+## Query API
+
+A GROQ-like query API lets you find posts by block type, style, or annotation, and extract specific blocks (e.g., all images, all PHP code blocks) across posts. See [docs/QUERY.md](docs/QUERY.md) for endpoints and examples.
 
 ## How It Works
 

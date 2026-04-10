@@ -48,11 +48,47 @@ class RendererTest extends TestCase {
 			->once()
 			->with( 'wp_trim_excerpt', [ $this->renderer, 'trim_excerpt' ], 5, 2 );
 
+		Functions\expect( 'add_filter' )
+			->once()
+			->with( '_wp_post_revision_field_post_content', [ $this->renderer, 'render_revision_field' ], 10, 4 );
+
 		Functions\expect( 'add_action' )
 			->once()
 			->with( 'rest_api_init', [ $this->renderer, 'register_rest_fields' ] );
 
 		$this->renderer->register();
+	}
+
+	// --- render_revision_field ---
+
+	public function test_render_revision_field_converts_pt_json_to_html(): void {
+		$json = json_encode( [
+			[
+				'_type'    => 'block',
+				'_key'     => 'r1',
+				'style'    => 'normal',
+				'children' => [
+					[ '_type' => 'span', '_key' => 's1', 'text' => 'Revision text', 'marks' => [] ],
+				],
+				'markDefs' => [],
+			],
+		] );
+
+		$result = $this->renderer->render_revision_field( $json, 'post_content', false, 'to' );
+		$this->assertSame( "<p>Revision text</p>\n", $result );
+	}
+
+	public function test_render_revision_field_returns_html_unchanged(): void {
+		$html = '<p>Already HTML</p>';
+		$this->assertSame( $html, $this->renderer->render_revision_field( $html ) );
+	}
+
+	public function test_render_revision_field_handles_empty_string(): void {
+		$this->assertSame( '', $this->renderer->render_revision_field( '' ) );
+	}
+
+	public function test_render_revision_field_handles_null(): void {
+		$this->assertSame( '', $this->renderer->render_revision_field( null ) );
 	}
 
 	// --- render ---

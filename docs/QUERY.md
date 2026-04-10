@@ -1,0 +1,186 @@
+# Query API
+
+The plugin provides a GROQ-like query API under `/wp-json/wp-portable-text/v1/` that lets you search and extract Portable Text content across posts.
+
+## Endpoints
+
+| Endpoint | Description |
+| --- | --- |
+| `GET /wp-json/wp-portable-text/v1/query` | Find posts matching block/content criteria |
+| `GET /wp-json/wp-portable-text/v1/blocks` | Extract specific blocks across posts |
+
+## `/query` — Find posts by content structure
+
+Find posts that contain specific block types, styles, or marks.
+
+**Parameters:**
+
+| Parameter | Type | Default | Description |
+| --- | --- | --- | --- |
+| `post_type` | string | `post` | Post type to search |
+| `block_type` | string | — | Filter by block `_type`: `block`, `image`, `codeBlock`, `embed`, `break` |
+| `has` | string | — | Filter posts containing this mark or annotation (e.g., `link`, `strong`, `em`) |
+| `style` | string | — | Filter posts containing blocks with this style (e.g., `h1`, `h2`, `blockquote`) |
+| `per_page` | integer | `10` | Results per page (max 100) |
+| `page` | integer | `1` | Page number |
+
+**Response headers:** `X-WP-Total`, `X-WP-TotalPages`
+
+**Examples:**
+
+Find all posts containing images:
+
+```bash
+curl -s "https://example.com/wp-json/wp-portable-text/v1/query?block_type=image" | jq .
+```
+
+```json
+[
+  {
+    "id": 42,
+    "title": "My Photo Post",
+    "date": "2026-04-10 12:00:00",
+    "link": "https://example.com/my-photo-post/",
+    "portable_text": [ ... ],
+    "matched_blocks": [
+      {
+        "_type": "image",
+        "_key": "img1",
+        "src": "https://example.com/wp-content/uploads/photo.jpg",
+        "alt": "A photo"
+      }
+    ]
+  }
+]
+```
+
+Find posts containing links:
+
+```bash
+curl -s "https://example.com/wp-json/wp-portable-text/v1/query?has=link"
+```
+
+Find posts with h2 headings:
+
+```bash
+curl -s "https://example.com/wp-json/wp-portable-text/v1/query?style=h2"
+```
+
+Find posts using bold text:
+
+```bash
+curl -s "https://example.com/wp-json/wp-portable-text/v1/query?has=strong"
+```
+
+Search pages instead of posts:
+
+```bash
+curl -s "https://example.com/wp-json/wp-portable-text/v1/query?post_type=page&block_type=codeBlock"
+```
+
+## `/blocks` — Extract blocks across posts
+
+Returns a flat list of blocks (with post context) matching the criteria. Useful for building indexes, galleries, or aggregations.
+
+**Parameters:**
+
+| Parameter | Type | Default | Description |
+| --- | --- | --- | --- |
+| `post_type` | string | `post` | Post type to search |
+| `block_type` | string | **required** | Block type to extract: `block`, `image`, `codeBlock`, `embed`, `break` |
+| `language` | string | — | Filter code blocks by language |
+| `style` | string | — | Filter text blocks by style |
+| `per_page` | integer | `20` | Results per page (max 100) |
+| `page` | integer | `1` | Page number |
+
+**Response headers:** `X-WP-Total`, `X-WP-TotalPages`
+
+**Examples:**
+
+Get all images across all posts (e.g., for a site-wide gallery):
+
+```bash
+curl -s "https://example.com/wp-json/wp-portable-text/v1/blocks?block_type=image" | jq .
+```
+
+```json
+[
+  {
+    "block": {
+      "_type": "image",
+      "_key": "img1",
+      "src": "https://example.com/wp-content/uploads/sunset.jpg",
+      "alt": "Sunset over the lake",
+      "caption": "Photo by Jane Doe"
+    },
+    "post_id": 42,
+    "title": "Weekend Trip",
+    "link": "https://example.com/weekend-trip/"
+  },
+  {
+    "block": {
+      "_type": "image",
+      "_key": "img2",
+      "src": "https://example.com/wp-content/uploads/mountain.jpg",
+      "alt": "Mountain view"
+    },
+    "post_id": 55,
+    "title": "Hiking Guide",
+    "link": "https://example.com/hiking-guide/"
+  }
+]
+```
+
+Get all PHP code blocks:
+
+```bash
+curl -s "https://example.com/wp-json/wp-portable-text/v1/blocks?block_type=codeBlock&language=php"
+```
+
+Get all JavaScript code blocks:
+
+```bash
+curl -s "https://example.com/wp-json/wp-portable-text/v1/blocks?block_type=codeBlock&language=javascript"
+```
+
+Get all h2 headings across posts:
+
+```bash
+curl -s "https://example.com/wp-json/wp-portable-text/v1/blocks?block_type=block&style=h2"
+```
+
+Paginate through results:
+
+```bash
+curl -s "https://example.com/wp-json/wp-portable-text/v1/blocks?block_type=image&per_page=5&page=2"
+```
+
+## JavaScript examples
+
+Build a site-wide image gallery:
+
+```js
+const response = await fetch('/wp-json/wp-portable-text/v1/blocks?block_type=image&per_page=50');
+const images = await response.json();
+const total = response.headers.get('X-WP-Total');
+
+images.forEach(({ block, title, link }) => {
+  console.log(`${block.alt} — from "${title}" (${link})`);
+});
+```
+
+Find posts with code snippets in a specific language:
+
+```js
+const response = await fetch('/wp-json/wp-portable-text/v1/query?block_type=codeBlock');
+const posts = await response.json();
+
+posts.forEach(post => {
+  const codeBlocks = post.matched_blocks;
+  console.log(`${post.title}: ${codeBlocks.length} code block(s)`);
+});
+```
+
+## See also
+
+- [REST API](REST.md) — Standard WordPress REST API fields and endpoints.

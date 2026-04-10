@@ -27,6 +27,9 @@ class Renderer {
 		// Provide PT-aware excerpt generation.
 		add_filter( 'wp_trim_excerpt', [ $this, 'trim_excerpt' ], 5, 2 );
 
+		// Show rendered HTML in revision diffs instead of raw JSON.
+		add_filter( '_wp_post_revision_field_post_content', [ $this, 'render_revision_field' ], 10, 4 );
+
 		// REST API: expose PT JSON alongside rendered HTML.
 		add_action( 'rest_api_init', [ $this, 'register_rest_fields' ] );
 	}
@@ -50,6 +53,33 @@ class Renderer {
 		}
 
 		return $this->blocks_to_html( $decoded );
+	}
+
+	/**
+	 * Convert PT JSON to HTML for the revision diff screen.
+	 *
+	 * WordPress passes the raw post_content through this filter before
+	 * computing the text diff. By rendering PT JSON to HTML here, the
+	 * revision comparison shows readable content instead of raw JSON.
+	 *
+	 * @param string       $value    The field value (post_content).
+	 * @param string       $field    The field name.
+	 * @param \WP_Post|false $post   The revision post object.
+	 * @param string       $context  'from' or 'to'.
+	 * @return string
+	 */
+	public function render_revision_field( $value, $field = '', $post = false, $context = '' ): string {
+		if ( ! is_string( $value ) || '' === $value ) {
+			return (string) $value;
+		}
+
+		$decoded = json_decode( $value, true );
+
+		if ( is_array( $decoded ) && ! empty( $decoded ) && isset( $decoded[0]['_type'] ) ) {
+			return $this->blocks_to_html( $decoded );
+		}
+
+		return $value;
 	}
 
 	/**
@@ -98,7 +128,7 @@ class Renderer {
 				$post_type,
 				'portable_text',
 				[
-					'get_callback' => static function ( array $object ): ?array {
+					'get_callback'    => static function ( array $object ): ?array {
 						$post = get_post( $object['id'] ?? 0 );
 						if ( ! $post || ! is_string( $post->post_content ) || '' === $post->post_content ) {
 							return null;
@@ -112,13 +142,100 @@ class Renderer {
 
 						return null;
 					},
-					'schema'       => [
+					'update_callback' => [ $this, 'update_portable_text' ],
+					'schema'          => [
 						'description' => 'Portable Text JSON representation of the content.',
 						'type'        => [ 'array', 'null' ],
 					],
 				]
 			);
 		}
+	}
+
+	/**
+	 * Update post_content with Portable Text JSON via REST API.
+	 *
+	 * Validates the structure, writes JSON directly to post_content
+	 * (bypassing kses), and populates post_content_filtered with plaintext.
+	 *
+	 * @param array<int,array<string,mixed>> $value   PT blocks from REST request.
+	 * @param \WP_Post                       $post    Post object.
+	 * @return true|\WP_Error
+	 */
+	public function update_portable_text( array $value, \WP_Post $post ) {
+		// Validate: must be a sequential array with _type on first element.
+		if ( ! empty( $value ) ) {
+			if ( array_keys( $value ) !== range( 0, count( $value ) - 1 ) ) {
+				return new \WP_Error(
+					'invalid_portable_text',
+					'Portable Text must be a sequential array of blocks.',
+					[ 'status' => 400 ]
+				);
+			}
+
+			if ( ! isset( $value[0]['_type'] ) ) {
+				return new \WP_Error(
+					'invalid_portable_text',
+					'Each block must have a _type property.',
+					[ 'status' => 400 ]
+				);
+			}
+		}
+
+		$json = wp_json_encode( $value, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES );
+
+		if ( false === $json ) {
+			return new \WP_Error(
+				'invalid_portable_text',
+				'Could not encode Portable Text as JSON.',
+				[ 'status' => 400 ]
+			);
+		}
+
+		// Write directly to DB, bypassing kses which would corrupt JSON.
+		global $wpdb;
+
+		// Extract plaintext for search.
+		$plaintext = $this->extract_plaintext_from_blocks( $value );
+
+		$wpdb->update(
+			$wpdb->posts,
+			[
+				'post_content'          => $json,
+				'post_content_filtered' => $plaintext,
+			],
+			[ 'ID' => $post->ID ],
+			[ '%s', '%s' ],
+			[ '%d' ]
+		);
+
+		clean_post_cache( $post->ID );
+
+		return true;
+	}
+
+	/**
+	 * Extract plaintext from PT blocks (for post_content_filtered).
+	 *
+	 * @param array<int,array<string,mixed>> $blocks PT blocks.
+	 * @return string
+	 */
+	private function extract_plaintext_from_blocks( array $blocks ): string {
+		$parts = [];
+
+		foreach ( $blocks as $block ) {
+			if ( ! is_array( $block ) || ! isset( $block['children'] ) ) {
+				continue;
+			}
+
+			foreach ( $block['children'] as $child ) {
+				if ( ! empty( $child['text'] ) ) {
+					$parts[] = $child['text'];
+				}
+			}
+		}
+
+		return implode( ' ', $parts );
 	}
 
 	/**

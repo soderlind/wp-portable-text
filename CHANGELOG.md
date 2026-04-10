@@ -5,6 +5,34 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.9] - 2026-04-10
+
+### Added
+
+- Query API at `/wp-json/wp-portable-text/v1/` with two endpoints:
+  - `/query` — find posts by block type, style, or mark/annotation presence.
+  - `/blocks` — extract specific blocks across posts (e.g., all images, all code blocks filtered by language).
+- REST API write support: `portable_text` field is now read-write; create/update posts with PT JSON via the REST API.
+- Query API documented in `docs/QUERY.md`; REST write examples added to `docs/REST.md`.
+- 11 new PHPUnit tests for the Query class (68 total).
+
+### Fixed
+
+- Query API `enum` and `maximum` constraints now enforced via `validate_callback` (returns 400 for invalid `block_type` or out-of-range `per_page`).
+
+## [0.1.8] - 2026-04-10
+
+### Added
+
+- Revision diffs now display rendered HTML instead of raw JSON via `_wp_post_revision_field_post_content` filter. JSON remains stored in `post_content`.
+- Editor area is now vertically resizable (CSS `resize: vertical`), matching the classic WP editor.
+
+### Changed
+
+- Moved JSON / HTML / MD preview tabs above the editor container, visually attached to the toolbar.
+- Preview tabs are right-aligned.
+- Added REST API documentation (`docs/REST.md`) with examples and schema reference; linked from README.
+
 ## [0.1.7] - 2026-04-10
 
 ### Fixed

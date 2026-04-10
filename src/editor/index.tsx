@@ -434,6 +434,7 @@ function App() {
 					}
 				}}
 			/>
+			<PreviewPanel value={value} />
 			<div className="wp-portable-text-editor-container">
 				<Toolbar />
 				<PortableTextEditable
@@ -445,7 +446,6 @@ function App() {
 					renderListItem={renderListItem}
 				/>
 			</div>
-			<PreviewPanel value={value} />
 		</EditorProvider>
 	);
 }
