@@ -2,6 +2,8 @@
 
 The plugin provides a GROQ-like query API under `/wp-json/wp-portable-text/v1/` that lets you search and extract Portable Text content across posts.
 
+>Tests for the Query API are documented in [docs/QUERY-TESTS.md](docs/QUERY-TESTS.md) with live results from a test site.
+
 ## Endpoints
 
 | Endpoint | Description |
