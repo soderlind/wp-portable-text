@@ -89,7 +89,7 @@ if (!result) {
 				{
 					_type: 'span',
 					_key: crypto.randomUUID().slice(0, 12),
-					text: html.replace(/<[^>]+>/g, ''),
+					text: html.replace(/[<>]/g, ''),
 					marks: [],
 				},
 			],
