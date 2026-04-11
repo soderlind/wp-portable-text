@@ -94,7 +94,7 @@ Customize the HTML output via filters on the PHP renderer:
 
 ## REST API
 
-The plugin exposes a `portable_text` field on all public post types via the WordPress REST API. See [docs/REST.md](docs/REST.md) for endpoints, examples, and schema reference.
+The plugin exposes a `portable_text` field on all post types with `show_in_rest` enabled via the WordPress REST API. See [docs/REST.md](docs/REST.md) for endpoints, examples, and schema reference.
 
 ## Query API
 
@@ -102,10 +102,10 @@ A GROQ-like query API lets you find posts by block type, style, or annotation, a
 
 ## How It Works
 
-1. The plugin disables the block editor and replaces it with the PT editor via the `replace_editor` hook
+1. The plugin disables the block editor via `use_block_editor_for_post` and injects the PT editor via `edit_form_after_title`
 2. Content is saved as JSON in `post_content`; a plaintext version goes to `post_content_filtered`
 3. On the front end, `the_content` filter deserializes the JSON and renders HTML using the PHP renderer
-4. The REST API includes a `rendered_content` field with the HTML output
+4. The REST API includes a `portable_text` field with the parsed PT blocks (and `content.rendered` has the HTML)
 
 ## Technical Notes
 
@@ -116,3 +116,4 @@ A GROQ-like query API lets you find posts by block type, style, or annotation, a
 ## License
 
 GPL-2.0-or-later
+
