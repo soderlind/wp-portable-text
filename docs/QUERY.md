@@ -20,13 +20,13 @@ Find posts that contain specific block types, styles, or marks.
 | Parameter | Type | Default | Description |
 | --- | --- | --- | --- |
 | `post_type` | string | `post` | Post type to search |
-| `block_type` | string | — | Filter by block `_type`: `block`, `image`, `codeBlock`, `embed`, `break` |
+| `block_type` | string | — | Filter by block `_type`: `block`, `image`, `codeBlock`, `embed`, `table`, `break` |
 | `has` | string | — | Filter posts containing this mark or annotation (e.g., `link`, `strong`, `em`) |
 | `style` | string | — | Filter posts containing blocks with this style (e.g., `h1`, `h2`, `blockquote`) |
 | `per_page` | integer | `10` | Results per page (max 100) |
 | `page` | integer | `1` | Page number |
 
-**Response headers:** `X-WP-Total`, `X-WP-TotalPages`
+**Response headers:** `X-WP-Total`, `X-WP-TotalPages`, `X-WP-PT-Cache` (`HIT` or `MISS`)
 
 **Examples:**
 
@@ -89,13 +89,13 @@ Returns a flat list of blocks (with post context) matching the criteria. Useful 
 | Parameter | Type | Default | Description |
 | --- | --- | --- | --- |
 | `post_type` | string | `post` | Post type to search |
-| `block_type` | string | **required** | Block type to extract: `block`, `image`, `codeBlock`, `embed`, `break` |
+| `block_type` | string | **required** | Block type to extract: `block`, `image`, `codeBlock`, `embed`, `table`, `break` |
 | `language` | string | — | Filter code blocks by language |
 | `style` | string | — | Filter text blocks by style |
 | `per_page` | integer | `20` | Results per page (max 100) |
 | `page` | integer | `1` | Page number |
 
-**Response headers:** `X-WP-Total`, `X-WP-TotalPages`
+**Response headers:** `X-WP-Total`, `X-WP-TotalPages`, `X-WP-PT-Cache` (`HIT` or `MISS`)
 
 **Examples:**
 

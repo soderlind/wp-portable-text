@@ -37,6 +37,7 @@ class Query {
 		'image',
 		'codeBlock',
 		'embed',
+		'table',
 		'break',
 	];
 

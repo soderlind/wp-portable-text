@@ -1,6 +1,6 @@
 # REST API
 
-WP Portable Text adds a `portable_text` field to the WordPress REST API response for every public post type (`show_in_rest = true`). The field contains the raw Portable Text JSON array, or `null` if the content is not Portable Text.
+WP Portable Text adds a `portable_text` field to the WordPress REST API response for every post type with `show_in_rest` enabled. The field contains the raw Portable Text JSON array, or `null` if the content is not Portable Text.
 
 ## Endpoints
 
@@ -235,6 +235,7 @@ Portable Text is framework-agnostic. Official serializers exist for:
 | `image` | Image | `src`, `alt`, `caption`, `attachmentId` |
 | `codeBlock` | Code block | `code`, `language` |
 | `embed` | oEmbed | `url` |
+| `table` | Table | `rows` (array of row arrays with cell objects) |
 | `break` | Horizontal rule | — |
 
 ### Styles
