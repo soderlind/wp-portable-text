@@ -10,7 +10,7 @@
  * License URI: https://www.gnu.org/licenses/gpl-2.0.html
  * Text Domain: wp-portable-text
  * Requires at least: 7.0
- * Requires PHP: 7.4
+ * Requires PHP: 8.3
  */
 
 declare( strict_types=1 );
@@ -19,7 +19,7 @@ namespace WPPortableText;
 
 defined( 'ABSPATH' ) || exit;
 
-const VERSION    = '0.1.4';
+const VERSION    = '0.1.9';
 const PLUGIN_DIR = __DIR__;
 const PLUGIN_URL = null; // Resolved at runtime via plugin_dir_url().
 
@@ -31,7 +31,7 @@ const PLUGIN_URL = null; // Resolved at runtime via plugin_dir_url().
 spl_autoload_register(
 	static function ( string $class ): void {
 		$prefix = 'WPPortableText\\';
-		if ( 0 !== strpos( $class, $prefix ) ) {
+		if ( ! str_starts_with( $class, $prefix ) ) {
 			return;
 		}
 

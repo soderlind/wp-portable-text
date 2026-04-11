@@ -165,7 +165,7 @@ class Renderer {
 	public function update_portable_text( array $value, \WP_Post $post ) {
 		// Validate: must be a sequential array with _type on first element.
 		if ( ! empty( $value ) ) {
-			if ( array_keys( $value ) !== range( 0, count( $value ) - 1 ) ) {
+			if ( ! array_is_list( $value ) ) {
 				return new \WP_Error(
 					'invalid_portable_text',
 					'Portable Text must be a sequential array of blocks.',
@@ -328,34 +328,15 @@ class Renderer {
 	private function render_block( array $block ): string {
 		$type = $block['_type'] ?? '';
 
-		switch ( $type ) {
-			case 'block':
-				return $this->render_text_block( $block );
-
-			case 'break':
-				return "<hr />\n";
-
-			case 'image':
-				return $this->render_image_block( $block );
-
-			case 'codeBlock':
-				return $this->render_code_block( $block );
-
-			case 'embed':
-				return $this->render_embed_block( $block );
-
-			case 'table':
-				return $this->render_table_block( $block );
-
-			default:
-				/**
-				 * Filters the HTML output for a custom PT block type.
-				 *
-				 * @param string              $html  Default empty string.
-				 * @param array<string,mixed> $block The PT block data.
-				 */
-				return (string) apply_filters( 'wp_portable_text_render_block', '', $block );
-		}
+		return match ( $type ) {
+			'block'     => $this->render_text_block( $block ),
+			'break'     => "<hr />\n",
+			'image'     => $this->render_image_block( $block ),
+			'codeBlock' => $this->render_code_block( $block ),
+			'embed'     => $this->render_embed_block( $block ),
+			'table'     => $this->render_table_block( $block ),
+			default     => (string) apply_filters( 'wp_portable_text_render_block', '', $block ),
+		};
 	}
 
 	/**
@@ -372,22 +353,11 @@ class Renderer {
 			return '';
 		}
 
-		switch ( $style ) {
-			case 'h1':
-			case 'h2':
-			case 'h3':
-			case 'h4':
-			case 'h5':
-			case 'h6':
-				return "<{$style}>{$content}</{$style}>\n";
-
-			case 'blockquote':
-				return "<blockquote><p>{$content}</p></blockquote>\n";
-
-			case 'normal':
-			default:
-				return "<p>{$content}</p>\n";
-		}
+		return match ( $style ) {
+			'h1', 'h2', 'h3', 'h4', 'h5', 'h6' => "<{$style}>{$content}</{$style}>\n",
+			'blockquote' => "<blockquote><p>{$content}</p></blockquote>\n",
+			default      => "<p>{$content}</p>\n",
+		};
 	}
 
 	/**
@@ -444,25 +414,16 @@ class Renderer {
 	 * @return string
 	 */
 	private function apply_decorator( string $text, string $decorator ): string {
-		switch ( $decorator ) {
-			case 'strong':
-				return "<strong>{$text}</strong>";
-			case 'em':
-				return "<em>{$text}</em>";
-			case 'underline':
-				return "<u>{$text}</u>";
-			case 'strike-through':
-			case 'strike':
-				return "<s>{$text}</s>";
-			case 'code':
-				return "<code>{$text}</code>";
-			case 'subscript':
-				return "<sub>{$text}</sub>";
-			case 'superscript':
-				return "<sup>{$text}</sup>";
-			default:
-				return $text;
-		}
+		return match ( $decorator ) {
+			'strong'                    => "<strong>{$text}</strong>",
+			'em'                        => "<em>{$text}</em>",
+			'underline'                 => "<u>{$text}</u>",
+			'strike-through', 'strike'  => "<s>{$text}</s>",
+			'code'                      => "<code>{$text}</code>",
+			'subscript'                 => "<sub>{$text}</sub>",
+			'superscript'               => "<sup>{$text}</sup>",
+			default                     => $text,
+		};
 	}
 
 	/**
@@ -483,7 +444,7 @@ class Renderer {
 				}
 				$href = esc_url( $href );
 				$rel  = '';
-				if ( 0 !== strpos( $href, '/' ) && 0 !== strpos( $href, home_url() ) ) {
+				if ( ! str_starts_with( $href, '/' ) && ! str_starts_with( $href, home_url() ) ) {
 					$rel = ' rel="noopener noreferrer"';
 				}
 				return "<a href=\"{$href}\"{$rel}>{$text}</a>";
@@ -517,7 +478,7 @@ class Renderer {
 		$lower     = strtolower( $uri );
 
 		foreach ( $dangerous as $scheme ) {
-			if ( 0 === strpos( $lower, $scheme ) ) {
+			if ( str_starts_with( $lower, $scheme ) ) {
 				return false;
 			}
 		}

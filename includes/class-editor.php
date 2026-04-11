@@ -31,7 +31,7 @@ class Editor {
 	 * editor support. Removing editor support from them causes fatal
 	 * errors in core (e.g. WP_Navigation_Fallback).
 	 */
-	private const EXCLUDED_POST_TYPES = [
+	private const array EXCLUDED_POST_TYPES = [
 		'wp_navigation',
 		'wp_template',
 		'wp_template_part',

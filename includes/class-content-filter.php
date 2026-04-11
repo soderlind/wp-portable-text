@@ -104,7 +104,7 @@ class Content_Filter {
 		}
 
 		// Must be a sequential (list) array.
-		if ( array_keys( $blocks ) !== range( 0, count( $blocks ) - 1 ) ) {
+		if ( ! array_is_list( $blocks ) ) {
 			return false;
 		}
 

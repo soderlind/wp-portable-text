@@ -64,7 +64,7 @@ class Migration {
 
 		// Verify Node.js is available.
 		$node_version = shell_exec( escapeshellarg( $node_path ) . ' --version 2>&1' );
-		if ( ! $node_version || 0 !== strpos( trim( (string) $node_version ), 'v' ) ) {
+		if ( ! $node_version || ! str_starts_with( trim( (string) $node_version ), 'v' ) ) {
 			\WP_CLI::error( 'Node.js not found at: ' . $node_path );
 			return;
 		}

@@ -5,6 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.11] - 2026-04-11
+
+### Changed
+
+- Require PHP 8.3+ (was 7.4 in plugin header, 8.2 in Composer).
+- Modernize PHP to 8.3 idioms:
+  - `strpos() === 0` → `str_starts_with()` across 4 files.
+  - `array_keys() === range()` → `array_is_list()` in Content_Filter and Renderer.
+  - `switch`/`return` → `match` expressions in Renderer (`render_block`, `render_text_block`, `apply_decorator`).
+  - Typed class constants (PHP 8.3) in Query and Editor classes.
+
+### Fixed
+
+- `VERSION` constant in `wp-portable-text.php` was stuck at `0.1.4`; now `0.1.9`.
+- README: corrected hook name (`replace_editor` → `use_block_editor_for_post` + `edit_form_after_title`), REST field name (`rendered_content` → `portable_text`), and post-type scope wording.
+
 ## [0.1.10] - 2026-04-11
 
 ### Changed

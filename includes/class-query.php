@@ -25,14 +25,14 @@ class Query {
 	/**
 	 * REST API namespace.
 	 */
-	private const NAMESPACE = 'wp-portable-text/v1';
+	private const string NAMESPACE = 'wp-portable-text/v1';
 
 	/**
 	 * Allowed block types for the block_type parameter.
 	 *
 	 * @var string[]
 	 */
-	private const BLOCK_TYPES = [
+	private const array BLOCK_TYPES = [
 		'block',
 		'image',
 		'codeBlock',
@@ -43,17 +43,17 @@ class Query {
 	/**
 	 * Maximum items per page.
 	 */
-	private const MAX_PER_PAGE = 100;
+	private const int MAX_PER_PAGE = 100;
 
 	/**
 	 * Default cache TTL in seconds (5 minutes).
 	 */
-	private const CACHE_TTL = 300;
+	private const int CACHE_TTL = 300;
 
 	/**
 	 * Cache group prefix for transient keys.
 	 */
-	private const CACHE_PREFIX = 'wp_pt_query_';
+	private const string CACHE_PREFIX = 'wp_pt_query_';
 
 	/**
 	 * Register hooks.

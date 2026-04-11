@@ -32,7 +32,7 @@ It also makes it easy to [query content](docs/QUERY.md) by block type, style, or
 ## Requirements
 
 - WordPress 7.0+
-- PHP 7.4+
+- PHP 8.3+
 - Node.js 18+ (for building)
 
 ## Installation
