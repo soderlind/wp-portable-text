@@ -12,6 +12,8 @@ A WordPress plugin that replaces the Gutenberg block editor with a [Portable Tex
 
 Portable Text is a JSON-based rich text specification created by Sanity.io. Unlike Gutenberg's HTML comment delimiters, PT stores content as a clean, typed data structure — making it easy to render to any format (HTML, Markdown, RSS, email, native apps) and query programmatically.
 
+It also makes it easy to [query content](docs/QUERY.md) by block type, style, or annotation presence, and to extract specific blocks across posts (e.g., all images, all code blocks filtered by language) — features that are difficult with Gutenberg's HTML-based storage.
+
 ## Features
 
 - **Rich text editor** powered by `@portabletext/editor` with toolbar, keyboard shortcuts, and inline preview
