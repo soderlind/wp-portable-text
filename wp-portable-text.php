@@ -35,11 +35,18 @@ spl_autoload_register(
 			return;
 		}
 
-		$relative = substr( $class, strlen( $prefix ) );
-		$file     = PLUGIN_DIR . '/includes/class-' . strtolower( str_replace( '_', '-', $relative ) ) . '.php';
+		$relative   = substr( $class, strlen( $prefix ) );
+		$parts      = explode( '\\', $relative );
+		$class_name = array_pop( $parts );
+		$subdir     = empty( $parts ) ? '' : strtolower( implode( '/', $parts ) ) . '/';
+		$slug       = strtolower( str_replace( '_', '-', $class_name ) );
 
-		if ( file_exists( $file ) ) {
-			require_once $file;
+		foreach ( [ 'class-', 'interface-' ] as $type_prefix ) {
+			$file = PLUGIN_DIR . '/includes/' . $subdir . $type_prefix . $slug . '.php';
+			if ( file_exists( $file ) ) {
+				require_once $file;
+				return;
+			}
 		}
 	}
 );

@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.14] - 2026-04-12
+
+### Changed
+
+- **Refactored renderer to shared Portable Text walker** with pluggable serializers:
+  - Extracted `Serializer` interface (`includes/serializers/interface-serializer.php`) with 13 format-specific output callbacks.
+  - `Html_Serializer` — produces HTML (decorators, annotations with `esc_url`/`rel`, image `<figure>`, code `<pre>`, embed via oEmbed, table `<table>`, WP filters for custom blocks).
+  - `Markdown_Serializer` — produces Markdown (inline syntax, `[text](href)` links, fenced code blocks, pipe tables).
+  - `Renderer` now walks PT blocks once via `blocks_to_format()` → `walk_block()` → `walk_children()`, delegating leaf rendering to the serializer.
+  - Removed ~300 lines of duplicated traversal code (HTML and Markdown pipelines shared identical block/children/mark walking logic).
+  - Updated autoloader to support subdirectory namespaces (`WPPortableText\Serializers\*` → `includes/serializers/`).
+  - All 84 existing tests pass unchanged — public API (`blocks_to_html`, `blocks_to_markdown`) unchanged.
+
 ## [0.1.13] - 2026-04-12
 
 ### Added
