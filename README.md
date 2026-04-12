@@ -16,6 +16,9 @@ Portable Text is a JSON-based rich text specification created by Sanity.io. Unli
 
 It also makes it easy to [query content](docs/QUERY.md) by block type, style, or annotation presence, and to extract specific blocks across posts (e.g., all images, all code blocks filtered by language) — features that are difficult with Gutenberg's HTML-based storage.
 
+<img width="100%" alt="Screenshot 2026-04-13 at 00 19 33" src="https://github.com/user-attachments/assets/7ae326ce-458e-41d5-9482-043a08e70e8f" />
+
+
 ## Features
 
 - **Rich text editor** powered by `@portabletext/editor` with toolbar, keyboard shortcuts, and inline preview
