@@ -19,6 +19,8 @@ namespace WPPortableText;
 
 defined( 'ABSPATH' ) || exit;
 
+require_once __DIR__ . '/vendor/autoload.php';
+
 const VERSION    = '0.1.9';
 const PLUGIN_DIR = __DIR__;
 const PLUGIN_URL = null; // Resolved at runtime via plugin_dir_url().
