@@ -56,6 +56,14 @@ class RendererTest extends TestCase {
 			->once()
 			->with( 'rest_api_init', [ $this->renderer, 'register_rest_fields' ] );
 
+		Functions\expect( 'add_action' )
+			->once()
+			->with( 'wp_head', [ $this->renderer, 'render_markdown_link' ] );
+
+		Functions\expect( 'add_action' )
+			->once()
+			->with( 'template_redirect', [ $this->renderer, 'serve_markdown' ] );
+
 		$this->renderer->register();
 	}
 
@@ -511,5 +519,229 @@ class RendererTest extends TestCase {
 		] );
 
 		return $this->renderer->render( $json );
+	}
+
+	// ---- Markdown rendering ----
+
+	public function test_markdown_paragraph(): void {
+		$blocks = [
+			[
+				'_type'    => 'block',
+				'_key'     => 'b1',
+				'style'    => 'normal',
+				'children' => [ [ '_type' => 'span', 'text' => 'Hello world', 'marks' => [] ] ],
+				'markDefs' => [],
+			],
+		];
+
+		$result = $this->renderer->blocks_to_markdown( $blocks );
+		$this->assertSame( "Hello world\n", $result );
+	}
+
+	public function test_markdown_headings(): void {
+		foreach ( range( 1, 6 ) as $level ) {
+			$blocks = [
+				[
+					'_type'    => 'block',
+					'_key'     => "h{$level}",
+					'style'    => "h{$level}",
+					'children' => [ [ '_type' => 'span', 'text' => 'Heading', 'marks' => [] ] ],
+					'markDefs' => [],
+				],
+			];
+
+			$prefix = str_repeat( '#', $level );
+			$result = $this->renderer->blocks_to_markdown( $blocks );
+			$this->assertStringContainsString( "{$prefix} Heading", $result );
+		}
+	}
+
+	public function test_markdown_blockquote(): void {
+		$blocks = [
+			[
+				'_type'    => 'block',
+				'_key'     => 'bq1',
+				'style'    => 'blockquote',
+				'children' => [ [ '_type' => 'span', 'text' => 'Quoted text', 'marks' => [] ] ],
+				'markDefs' => [],
+			],
+		];
+
+		$result = $this->renderer->blocks_to_markdown( $blocks );
+		$this->assertStringContainsString( '> Quoted text', $result );
+	}
+
+	public function test_markdown_decorators(): void {
+		$cases = [
+			'strong'         => '**bold**',
+			'em'             => '*italic*',
+			'code'           => '`code`',
+			'strike-through' => '~~strike~~',
+		];
+
+		foreach ( $cases as $decorator => $expected ) {
+			$blocks = [
+				[
+					'_type'    => 'block',
+					'_key'     => 'd1',
+					'style'    => 'normal',
+					'children' => [
+						[ '_type' => 'span', 'text' => array_values( array_filter( [ 'strong' => 'bold', 'em' => 'italic', 'code' => 'code', 'strike-through' => 'strike' ] ) )[ array_search( $decorator, array_keys( $cases ), true ) ], 'marks' => [ $decorator ] ],
+					],
+					'markDefs' => [],
+				],
+			];
+
+			$result = $this->renderer->blocks_to_markdown( $blocks );
+			$this->assertStringContainsString( $expected, $result, "Decorator {$decorator}" );
+		}
+	}
+
+	public function test_markdown_link(): void {
+		$blocks = [
+			[
+				'_type'    => 'block',
+				'_key'     => 'b1',
+				'style'    => 'normal',
+				'children' => [
+					[ '_type' => 'span', 'text' => 'click here', 'marks' => [ 'link1' ] ],
+				],
+				'markDefs' => [
+					[ '_key' => 'link1', '_type' => 'link', 'href' => 'https://example.com' ],
+				],
+			],
+		];
+
+		$result = $this->renderer->blocks_to_markdown( $blocks );
+		$this->assertStringContainsString( '[click here](https://example.com)', $result );
+	}
+
+	public function test_markdown_image(): void {
+		$blocks = [
+			[
+				'_type' => 'image',
+				'_key'  => 'img1',
+				'src'   => 'https://example.com/photo.jpg',
+				'alt'   => 'A photo',
+			],
+		];
+
+		$result = $this->renderer->blocks_to_markdown( $blocks );
+		$this->assertStringContainsString( '![A photo](https://example.com/photo.jpg)', $result );
+	}
+
+	public function test_markdown_image_with_caption(): void {
+		$blocks = [
+			[
+				'_type'   => 'image',
+				'_key'    => 'img1',
+				'src'     => 'https://example.com/photo.jpg',
+				'alt'     => 'A photo',
+				'caption' => 'My caption',
+			],
+		];
+
+		$result = $this->renderer->blocks_to_markdown( $blocks );
+		$this->assertStringContainsString( '*My caption*', $result );
+	}
+
+	public function test_markdown_code_block(): void {
+		$blocks = [
+			[
+				'_type'    => 'codeBlock',
+				'_key'     => 'cb1',
+				'code'     => 'echo "hello";',
+				'language' => 'php',
+			],
+		];
+
+		$result = $this->renderer->blocks_to_markdown( $blocks );
+		$this->assertStringContainsString( "```php\necho \"hello\";\n```", $result );
+	}
+
+	public function test_markdown_hr(): void {
+		$blocks = [ [ '_type' => 'break', '_key' => 'br1' ] ];
+
+		$result = $this->renderer->blocks_to_markdown( $blocks );
+		$this->assertStringContainsString( '---', $result );
+	}
+
+	public function test_markdown_bullet_list(): void {
+		$blocks = [
+			[
+				'_type'    => 'block',
+				'_key'     => 'li1',
+				'style'    => 'normal',
+				'listItem' => 'bullet',
+				'level'    => 1,
+				'children' => [ [ '_type' => 'span', 'text' => 'Item A', 'marks' => [] ] ],
+				'markDefs' => [],
+			],
+			[
+				'_type'    => 'block',
+				'_key'     => 'li2',
+				'style'    => 'normal',
+				'listItem' => 'bullet',
+				'level'    => 1,
+				'children' => [ [ '_type' => 'span', 'text' => 'Item B', 'marks' => [] ] ],
+				'markDefs' => [],
+			],
+		];
+
+		$result = $this->renderer->blocks_to_markdown( $blocks );
+		$this->assertStringContainsString( '- Item A', $result );
+		$this->assertStringContainsString( '- Item B', $result );
+	}
+
+	public function test_markdown_numbered_list(): void {
+		$blocks = [
+			[
+				'_type'    => 'block',
+				'_key'     => 'li1',
+				'style'    => 'normal',
+				'listItem' => 'number',
+				'level'    => 1,
+				'children' => [ [ '_type' => 'span', 'text' => 'First', 'marks' => [] ] ],
+				'markDefs' => [],
+			],
+			[
+				'_type'    => 'block',
+				'_key'     => 'li2',
+				'style'    => 'normal',
+				'listItem' => 'number',
+				'level'    => 1,
+				'children' => [ [ '_type' => 'span', 'text' => 'Second', 'marks' => [] ] ],
+				'markDefs' => [],
+			],
+		];
+
+		$result = $this->renderer->blocks_to_markdown( $blocks );
+		$this->assertStringContainsString( '1. First', $result );
+		$this->assertStringContainsString( '2. Second', $result );
+	}
+
+	public function test_markdown_mixed_blocks(): void {
+		$blocks = [
+			[
+				'_type'    => 'block',
+				'_key'     => 'b1',
+				'style'    => 'h2',
+				'children' => [ [ '_type' => 'span', 'text' => 'Title', 'marks' => [] ] ],
+				'markDefs' => [],
+			],
+			[
+				'_type'    => 'block',
+				'_key'     => 'b2',
+				'style'    => 'normal',
+				'children' => [ [ '_type' => 'span', 'text' => 'Paragraph', 'marks' => [] ] ],
+				'markDefs' => [],
+			],
+			[ '_type' => 'break', '_key' => 'br' ],
+		];
+
+		$result = $this->renderer->blocks_to_markdown( $blocks );
+		$this->assertStringContainsString( '## Title', $result );
+		$this->assertStringContainsString( "Paragraph\n", $result );
+		$this->assertStringContainsString( '---', $result );
 	}
 }

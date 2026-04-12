@@ -32,6 +32,10 @@ class Renderer {
 
 		// REST API: expose PT JSON alongside rendered HTML.
 		add_action( 'rest_api_init', [ $this, 'register_rest_fields' ] );
+
+		// Markdown alternate: <link> tag and content serving.
+		add_action( 'wp_head', [ $this, 'render_markdown_link' ] );
+		add_action( 'template_redirect', [ $this, 'serve_markdown' ] );
 	}
 
 	/**
@@ -590,5 +594,317 @@ class Renderer {
 
 		$html .= "</table>\n";
 		return $html;
+	}
+
+	// ---- Markdown alternate representation ----
+
+	/**
+	 * Output <link rel="alternate" type="text/markdown"> in wp_head for PT posts.
+	 */
+	public function render_markdown_link(): void {
+		if ( ! is_singular() ) {
+			return;
+		}
+
+		$post = get_post();
+		if ( ! $post || ! $this->is_portable_text_content( $post->post_content ) ) {
+			return;
+		}
+
+		$url = add_query_arg( 'format', 'markdown', get_permalink( $post ) );
+		printf(
+			'<link rel="alternate" type="text/markdown" href="%s" title="%s (Markdown)" />' . "\n",
+			esc_url( $url ),
+			esc_attr( get_the_title( $post ) )
+		);
+	}
+
+	/**
+	 * Serve markdown when ?format=markdown or Accept: text/markdown.
+	 */
+	public function serve_markdown(): void {
+		if ( ! is_singular() ) {
+			return;
+		}
+
+		$post = get_post();
+		if ( ! $post || ! $this->is_portable_text_content( $post->post_content ) ) {
+			return;
+		}
+
+		$wants_markdown = false;
+
+		// Check query parameter.
+		$format = get_query_var( 'format' );
+		if ( '' === $format ) {
+			// phpcs:ignore WordPress.Security.NonceVerification.Recommended
+			$format = sanitize_text_field( wp_unslash( $_GET['format'] ?? '' ) );
+		}
+		if ( 'markdown' === $format ) {
+			$wants_markdown = true;
+		}
+
+		// Check Accept header for content negotiation.
+		if ( ! $wants_markdown ) {
+			// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+			$accept = wp_unslash( $_SERVER['HTTP_ACCEPT'] ?? '' );
+			if ( str_contains( $accept, 'text/markdown' ) ) {
+				$wants_markdown = true;
+			}
+		}
+
+		if ( ! $wants_markdown ) {
+			return;
+		}
+
+		$decoded  = json_decode( $post->post_content, true );
+		$title    = get_the_title( $post );
+		$markdown = "# {$title}\n\n" . $this->blocks_to_markdown( $decoded );
+
+		// Prevent caching proxies from mixing HTML and Markdown responses.
+		header( 'Vary: Accept' );
+		header( 'Content-Type: text/markdown; charset=UTF-8' );
+		header( 'X-Robots-Tag: noindex' );
+
+		// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- raw markdown output.
+		echo $markdown;
+		exit;
+	}
+
+	/**
+	 * Check if a string looks like Portable Text JSON.
+	 *
+	 * @param string $content Post content.
+	 * @return bool
+	 */
+	private function is_portable_text_content( string $content ): bool {
+		if ( '' === $content ) {
+			return false;
+		}
+		$decoded = json_decode( $content, true );
+		return is_array( $decoded ) && ! empty( $decoded ) && isset( $decoded[0]['_type'] );
+	}
+
+	/**
+	 * Convert PT blocks to Markdown.
+	 *
+	 * @param array<int,array<string,mixed>> $blocks PT blocks.
+	 * @return string
+	 */
+	public function blocks_to_markdown( array $blocks ): string {
+		$parts = [];
+		$i     = 0;
+		$count = count( $blocks );
+
+		while ( $i < $count ) {
+			$block = $blocks[ $i ];
+
+			if ( ! empty( $block['listItem'] ) ) {
+				$list_type = $block['listItem'];
+				$ordered   = 'number' === $list_type;
+				$idx       = 1;
+
+				while ( $i < $count && ( $blocks[ $i ]['listItem'] ?? '' ) === $list_type ) {
+					$prefix  = $ordered ? "{$idx}. " : '- ';
+					$parts[] = $prefix . $this->md_render_children( $blocks[ $i ] );
+					++$idx;
+					++$i;
+				}
+				$parts[] = '';
+				continue;
+			}
+
+			$parts[] = $this->md_render_block( $block );
+			++$i;
+		}
+
+		return implode( "\n", $parts );
+	}
+
+	/**
+	 * Render a single block as Markdown.
+	 *
+	 * @param array<string,mixed> $block PT block.
+	 * @return string
+	 */
+	private function md_render_block( array $block ): string {
+		$type = $block['_type'] ?? '';
+
+		return match ( $type ) {
+			'block'     => $this->md_render_text_block( $block ),
+			'break'     => "---\n",
+			'image'     => $this->md_render_image( $block ),
+			'codeBlock' => $this->md_render_code_block( $block ),
+			'embed'     => ( $block['url'] ?? '' ) . "\n",
+			'table'     => $this->md_render_table( $block ),
+			default     => '',
+		};
+	}
+
+	/**
+	 * Render a text block as Markdown.
+	 *
+	 * @param array<string,mixed> $block PT text block.
+	 * @return string
+	 */
+	private function md_render_text_block( array $block ): string {
+		$content = $this->md_render_children( $block );
+		if ( '' === trim( $content ) ) {
+			return '';
+		}
+
+		$style = $block['style'] ?? 'normal';
+
+		return match ( $style ) {
+			'h1'         => "# {$content}\n",
+			'h2'         => "## {$content}\n",
+			'h3'         => "### {$content}\n",
+			'h4'         => "#### {$content}\n",
+			'h5'         => "##### {$content}\n",
+			'h6'         => "###### {$content}\n",
+			'blockquote' => "> {$content}\n",
+			default      => "{$content}\n",
+		};
+	}
+
+	/**
+	 * Render children spans as Markdown text.
+	 *
+	 * @param array<string,mixed> $block PT block with children/markDefs.
+	 * @return string
+	 */
+	private function md_render_children( array $block ): string {
+		$children  = $block['children'] ?? [];
+		$mark_defs = $block['markDefs'] ?? [];
+
+		$mark_defs_map = [];
+		foreach ( $mark_defs as $def ) {
+			if ( isset( $def['_key'] ) ) {
+				$mark_defs_map[ $def['_key'] ] = $def;
+			}
+		}
+
+		$md = '';
+		foreach ( $children as $child ) {
+			if ( 'span' !== ( $child['_type'] ?? '' ) ) {
+				continue;
+			}
+
+			$text  = $child['text'] ?? '';
+			$marks = $child['marks'] ?? [];
+
+			foreach ( $marks as $mark ) {
+				if ( isset( $mark_defs_map[ $mark ] ) ) {
+					$text = $this->md_apply_annotation( $text, $mark_defs_map[ $mark ] );
+				} else {
+					$text = $this->md_apply_decorator( $text, $mark );
+				}
+			}
+
+			$md .= $text;
+		}
+
+		return $md;
+	}
+
+	/**
+	 * Apply a Markdown decorator.
+	 *
+	 * @param string $text      Text.
+	 * @param string $decorator Decorator name.
+	 * @return string
+	 */
+	private function md_apply_decorator( string $text, string $decorator ): string {
+		return match ( $decorator ) {
+			'strong'                    => "**{$text}**",
+			'em'                        => "*{$text}*",
+			'underline'                 => "<u>{$text}</u>",
+			'strike-through', 'strike'  => "~~{$text}~~",
+			'code'                      => "`{$text}`",
+			'subscript'                 => "<sub>{$text}</sub>",
+			'superscript'               => "<sup>{$text}</sup>",
+			default                     => $text,
+		};
+	}
+
+	/**
+	 * Apply a Markdown annotation.
+	 *
+	 * @param string              $text Text.
+	 * @param array<string,mixed> $def  Mark definition.
+	 * @return string
+	 */
+	private function md_apply_annotation( string $text, array $def ): string {
+		if ( 'link' === ( $def['_type'] ?? '' ) && ! empty( $def['href'] ) ) {
+			$href = $def['href'];
+			return "[{$text}]({$href})";
+		}
+		return $text;
+	}
+
+	/**
+	 * Render an image block as Markdown.
+	 *
+	 * @param array<string,mixed> $block PT image block.
+	 * @return string
+	 */
+	private function md_render_image( array $block ): string {
+		$alt = $block['alt'] ?? '';
+		$src = $block['src'] ?? $block['url'] ?? '';
+		$md  = "![{$alt}]({$src})";
+
+		if ( ! empty( $block['caption'] ) ) {
+			$md .= "\n\n*{$block['caption']}*";
+		}
+
+		return $md . "\n";
+	}
+
+	/**
+	 * Render a code block as Markdown.
+	 *
+	 * @param array<string,mixed> $block PT code block.
+	 * @return string
+	 */
+	private function md_render_code_block( array $block ): string {
+		$lang = $block['language'] ?? '';
+		$code = $block['code'] ?? '';
+
+		return "```{$lang}\n{$code}\n```\n";
+	}
+
+	/**
+	 * Render a table block as Markdown.
+	 *
+	 * @param array<string,mixed> $block PT table block.
+	 * @return string
+	 */
+	private function md_render_table( array $block ): string {
+		$rows = $block['rows'] ?? [];
+		if ( empty( $rows ) ) {
+			return '';
+		}
+
+		$lines      = [];
+		$has_header  = ! empty( $block['hasHeaderRow'] );
+		$first_row   = $rows[0]['cells'] ?? [];
+		$col_count   = count( $first_row );
+
+		foreach ( $rows as $i => $row ) {
+			$cells   = $row['cells'] ?? [];
+			$lines[] = '| ' . implode( ' | ', array_map( 'strval', $cells ) ) . ' |';
+
+			// Add separator after header row.
+			if ( 0 === $i && $has_header ) {
+				$lines[] = '| ' . implode( ' | ', array_fill( 0, $col_count, '---' ) ) . ' |';
+			}
+		}
+
+		// If no header row, add separator after first row as markdown requires it.
+		if ( ! $has_header && $col_count > 0 ) {
+			array_splice( $lines, 1, 0, '| ' . implode( ' | ', array_fill( 0, $col_count, '---' ) ) . ' |' );
+		}
+
+		return implode( "\n", $lines ) . "\n";
 	}
 }

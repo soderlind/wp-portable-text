@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.13] - 2026-04-12
+
+### Added
+
+- **Markdown alternate representation** for AI clients and tools:
+  - `<link rel="alternate" type="text/markdown" ...>` in `wp_head` for all PT posts.
+  - `?format=markdown` query parameter serves the post as `text/markdown`.
+  - `Accept: text/markdown` content negotiation on singular post URLs.
+  - PHP `blocks_to_markdown()` renderer (paragraphs, headings, blockquotes, lists, images with captions, code blocks with language, tables, links, decorators, embeds, horizontal rules).
+  - `Vary: Accept` and `X-Robots-Tag: noindex` headers on markdown responses.
+- 12 new tests for markdown rendering (84 total).
+
 ## [0.1.12] - 2026-04-11
 
 ### Added
