@@ -2,7 +2,6 @@
 
 node_modules/
 vendor/
-build/
 *.log
 .cache/
 .phpunit.result.cache
