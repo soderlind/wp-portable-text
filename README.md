@@ -21,10 +21,11 @@ It also makes it easy to [query content](docs/QUERY.md) by block type, style, or
 - **Styles:** paragraph, h1–h6, blockquote
 - **Annotations:** links (with popover for editing/removing)
 - **Lists:** bullet and numbered
-- **Block objects:** separator (hr), image (via WP media library), code block (with language selector), embed
+- **Block objects:** separator (hr), image (via WP media library), code block (with language selector), embed, table
 - **Click-to-edit** image blocks with alt text, caption, and replace support
 - **Preview panel** below the editor with JSON, HTML, and Markdown toggle views
-- **PHP renderer** converts PT JSON → HTML on `the_content`, with filters for customization
+- **PHP renderer** converts PT JSON → HTML on `the_content`, with pluggable serializers and filters for customization
+- **Markdown alternate** — `Accept: text/markdown` or `?format=markdown` serves content as Markdown for AI clients and tools
 - **Plaintext search** — `post_content_filtered` is populated with a plain-text version for WordPress search
 - **HTML → PT migration** for existing content using DOMDocument
 - **WP-CLI command** `wp portable-text migrate` with `--dry-run`, `--post-type`, `--ids`, `--limit` options
@@ -39,6 +40,7 @@ It also makes it easy to [query content](docs/QUERY.md) by block type, style, or
 
 ```bash
 cd wp-content/plugins/wp-portable-text
+composer install
 npm install
 npm run build
 ```
@@ -57,12 +59,17 @@ npm run lint:css # Lint CSS
 ## Project Structure
 
 ```
-wp-portable-text.php          Plugin bootstrap and autoloader
-includes/
-  class-editor.php            Disables Gutenberg, mounts PT editor, enqueues assets
-  class-content-filter.php    Bypasses kses for PT JSON, populates plaintext for search
-  class-renderer.php          the_content filter: PT JSON → HTML
-  class-migration.php         WP-CLI migrate command, HTML → PT conversion
+wp-portable-text.php          Plugin bootstrap, loads Composer autoloader
+includes/                     PSR-4 root (WPPortableText\)
+  Editor.php                  Disables Gutenberg, mounts PT editor, enqueues assets
+  Content_Filter.php          Bypasses kses for PT JSON, populates plaintext for search
+  Renderer.php                the_content filter: shared PT walker, markdown alternate
+  Migration.php               WP-CLI migrate command, HTML → PT conversion
+  Query.php                   GROQ-like REST query API for PT content
+  Serializers/                PSR-4 sub-namespace (WPPortableText\Serializers\)
+    Serializer.php            Interface — 13 format-specific output callbacks
+    Html_Serializer.php       HTML output (escaping, tags, oEmbed, WP filters)
+    Markdown_Serializer.php   Markdown output (inline syntax, fenced code, pipe tables)
 src/editor/
   index.tsx                   React app entry, render functions for all PT elements
   schema.ts                   PT schema definition (decorators, styles, annotations, etc.)
@@ -71,7 +78,7 @@ src/editor/
   types.ts                    TypeScript type declarations
   components/
     Toolbar.tsx               Toolbar with style dropdown, decorators, annotations, lists, block objects
-    PreviewPanel.tsx           JSON / HTML / Markdown preview toggle
+    PreviewPanel.tsx          JSON / HTML / Markdown preview toggle
 ```
 
 ## Schema
@@ -84,7 +91,7 @@ The editor's Portable Text schema is defined in `src/editor/schema.ts`:
 | **Styles**      | normal, h1–h6, blockquote                                          |
 | **Annotations** | link (href)                                                         |
 | **Lists**       | bullet, number                                                      |
-| **Block objects**| break, image (src, alt, caption, attachmentId), codeBlock (code, language), embed (url) |
+| **Block objects**| break, image (src, alt, caption, attachmentId), codeBlock (code, language), embed (url), table (rows, hasHeaderRow) |
 
 ## PHP Filters
 
@@ -93,6 +100,20 @@ Customize the HTML output via filters on the PHP renderer:
 - `wp_portable_text_render_block` — Filter each block's HTML
 - `wp_portable_text_render_inline` — Filter inline element HTML
 - `wp_portable_text_render_annotation` — Filter annotation (e.g. link) HTML
+
+## Markdown Alternate
+
+Every page that contains Portable Text content advertises a markdown alternate via `<link rel="alternate" type="text/markdown">` in `wp_head`. AI clients and tools can request it:
+
+```bash
+# Via query parameter
+curl http://example.com/my-post/?format=markdown
+
+# Via content negotiation
+curl -H "Accept: text/markdown" http://example.com/my-post/
+```
+
+Works on singular posts, the blog home page, and archive pages. Responses include `Vary: Accept` and `X-Robots-Tag: noindex` headers.
 
 ## REST API
 
@@ -106,8 +127,9 @@ A GROQ-like query API lets you find posts by block type, style, or annotation, a
 
 1. The plugin disables the block editor via `use_block_editor_for_post` and injects the PT editor via `edit_form_after_title`
 2. Content is saved as JSON in `post_content`; a plaintext version goes to `post_content_filtered`
-3. On the front end, `the_content` filter deserializes the JSON and renders HTML using the PHP renderer
+3. On the front end, `the_content` filter deserializes the JSON and renders HTML via a shared PT walker that delegates to pluggable serializers (`Html_Serializer`, `Markdown_Serializer`)
 4. The REST API includes a `portable_text` field with the parsed PT blocks (and `content.rendered` has the HTML)
+5. AI clients can request markdown via `Accept: text/markdown` or `?format=markdown` on any page with PT content
 
 ## Technical Notes
 
@@ -118,4 +140,25 @@ A GROQ-like query API lets you find posts by block type, style, or annotation, a
 ## License
 
 GPL-2.0-or-later
+
+## AI Contribution Attribution
+
+When AI tools contribute to development, proper attribution
+helps track the evolving role of AI in the development process.
+Contributions should include an Assisted-by tag in the following format:
+
+`Assisted-by: AGENT_NAME:MODEL_VERSION [TOOL1] [TOOL2]`
+
+Where:
+
+* `AGENT_NAME` is the name of the AI tool or framework
+* `MODEL_VERSION` is the specific model version used
+* `[TOOL1] [TOOL2]` are optional specialized analysis tools used
+  (e.g., coccinelle, sparse, smatch, clang-tidy)
+
+Basic development tools (git, gcc, make, editors) should not be listed.
+
+Example:
+
+`Assisted-by: Claude:claude-3-opus coccinelle sparse`
 
