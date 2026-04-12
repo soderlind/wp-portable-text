@@ -19,7 +19,23 @@ namespace WPPortableText;
 
 defined( 'ABSPATH' ) || exit;
 
-require_once __DIR__ . '/vendor/autoload.php';
+// Prefer Composer autoloader; fall back to a simple PSR-4 loader
+// so the plugin works without `composer install` (e.g. release zips).
+if ( file_exists( __DIR__ . '/vendor/autoload.php' ) ) {
+	require_once __DIR__ . '/vendor/autoload.php';
+} else {
+	spl_autoload_register( static function ( string $class ): void {
+		$prefix = 'WPPortableText\\';
+		if ( ! str_starts_with( $class, $prefix ) ) {
+			return;
+		}
+		$relative = substr( $class, strlen( $prefix ) );
+		$file     = __DIR__ . '/includes/' . str_replace( '\\', '/', $relative ) . '.php';
+		if ( file_exists( $file ) ) {
+			require_once $file;
+		}
+	} );
+}
 
 const VERSION    = '0.1.9';
 const PLUGIN_DIR = __DIR__;
