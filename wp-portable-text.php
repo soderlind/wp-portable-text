@@ -24,34 +24,6 @@ const PLUGIN_DIR = __DIR__;
 const PLUGIN_URL = null; // Resolved at runtime via plugin_dir_url().
 
 /**
- * Autoloader for WPPortableText classes.
- *
- * Maps WPPortableText\Foo_Bar → includes/class-foo-bar.php
- */
-spl_autoload_register(
-	static function ( string $class ): void {
-		$prefix = 'WPPortableText\\';
-		if ( ! str_starts_with( $class, $prefix ) ) {
-			return;
-		}
-
-		$relative   = substr( $class, strlen( $prefix ) );
-		$parts      = explode( '\\', $relative );
-		$class_name = array_pop( $parts );
-		$subdir     = empty( $parts ) ? '' : strtolower( implode( '/', $parts ) ) . '/';
-		$slug       = strtolower( str_replace( '_', '-', $class_name ) );
-
-		foreach ( [ 'class-', 'interface-' ] as $type_prefix ) {
-			$file = PLUGIN_DIR . '/includes/' . $subdir . $type_prefix . $slug . '.php';
-			if ( file_exists( $file ) ) {
-				require_once $file;
-				return;
-			}
-		}
-	}
-);
-
-/**
  * Return the plugin URL (cached).
  */
 function plugin_url(): string {

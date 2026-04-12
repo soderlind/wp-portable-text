@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.15] - 2026-04-12
+
+### Changed
+
+- **Switched to PSR-4 autoloading** — Composer `psr-4` mapping `WPPortableText\` → `includes/`.
+  - Renamed files to PSR-4 convention (`Content_Filter.php`, `Renderer.php`, etc.) and `Serializers/` directory.
+  - Removed custom `spl_autoload_register` from plugin bootstrap.
+
 ## [0.1.14] - 2026-04-12
 
 ### Changed

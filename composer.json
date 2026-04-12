@@ -11,9 +11,9 @@
 		"brain/monkey": "^2.6"
 	},
 	"autoload": {
-		"classmap": [
-			"includes/"
-		]
+		"psr-4": {
+			"WPPortableText\\": "includes/"
+		}
 	},
 	"scripts": {
 		"test": "phpunit"
