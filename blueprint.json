@@ -11,7 +11,14 @@
 			"pluginData": {
 				"resource": "url",
 				"url": "https://github.com/soderlind/wp-portable-text/releases/latest/download/wp-portable-text.zip"
+			},
+			"options": {
+				"activate": false
 			}
+		},
+		{
+			"step": "runPHP",
+			"code": "<?php\nrequire '/wordpress/wp-load.php';\n$active = get_option( 'active_plugins', [] );\n$active[] = 'wp-portable-text/wp-portable-text.php';\nupdate_option( 'active_plugins', array_unique( $active ) );\necho 'Plugin activated.';\n"
 		},
 		{
 			"step": "runPHP",

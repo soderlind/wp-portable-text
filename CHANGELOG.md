@@ -13,6 +13,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Renamed files to PSR-4 convention (`Content_Filter.php`, `Renderer.php`, etc.) and `Serializers/` directory.
   - Removed custom `spl_autoload_register` from plugin bootstrap.
 
+### Fixed
+
+- **Blueprint activation on WP nightly** — Install plugin without auto-activation, then force-activate via `active_plugins` option to bypass `version_compare` failure with RC/nightly version strings.
+
 ## [0.1.14] - 2026-04-12
 
 ### Changed
