@@ -8,7 +8,7 @@
  * @package WPPortableText
  */
 
-declare( strict_types=1 );
+declare(strict_types=1);
 
 namespace WPPortableText;
 
@@ -52,7 +52,7 @@ class Renderer {
 		}
 
 		// Quick check: first element must have _type.
-		if ( ! isset( $decoded[0]['_type'] ) ) {
+		if ( ! isset( $decoded[ 0 ][ '_type' ] ) ) {
 			return $content;
 		}
 
@@ -79,7 +79,7 @@ class Renderer {
 
 		$decoded = json_decode( $value, true );
 
-		if ( is_array( $decoded ) && ! empty( $decoded ) && isset( $decoded[0]['_type'] ) ) {
+		if ( is_array( $decoded ) && ! empty( $decoded ) && isset( $decoded[ 0 ][ '_type' ] ) ) {
 			return $this->blocks_to_html( $decoded );
 		}
 
@@ -104,7 +104,7 @@ class Renderer {
 		}
 
 		$decoded = json_decode( $post->post_content, true );
-		if ( ! is_array( $decoded ) || ! isset( $decoded[0]['_type'] ) ) {
+		if ( ! is_array( $decoded ) || ! isset( $decoded[ 0 ][ '_type' ] ) ) {
 			return $text;
 		}
 
@@ -133,14 +133,14 @@ class Renderer {
 				'portable_text',
 				[
 					'get_callback'    => static function ( array $object ): ?array {
-						$post = get_post( $object['id'] ?? 0 );
+						$post = get_post( $object[ 'id' ] ?? 0 );
 						if ( ! $post || ! is_string( $post->post_content ) || '' === $post->post_content ) {
 							return null;
 						}
 
 						$decoded = json_decode( $post->post_content, true );
 
-						if ( is_array( $decoded ) && isset( $decoded[0]['_type'] ) ) {
+						if ( is_array( $decoded ) && isset( $decoded[ 0 ][ '_type' ] ) ) {
 							return $decoded;
 						}
 
@@ -177,7 +177,7 @@ class Renderer {
 				);
 			}
 
-			if ( ! isset( $value[0]['_type'] ) ) {
+			if ( ! isset( $value[ 0 ][ '_type' ] ) ) {
 				return new \WP_Error(
 					'invalid_portable_text',
 					'Each block must have a _type property.',
@@ -228,13 +228,13 @@ class Renderer {
 		$parts = [];
 
 		foreach ( $blocks as $block ) {
-			if ( ! is_array( $block ) || ! isset( $block['children'] ) ) {
+			if ( ! is_array( $block ) || ! isset( $block[ 'children' ] ) ) {
 				continue;
 			}
 
-			foreach ( $block['children'] as $child ) {
-				if ( ! empty( $child['text'] ) ) {
-					$parts[] = $child['text'];
+			foreach ( $block[ 'children' ] as $child ) {
+				if ( ! empty( $child[ 'text' ] ) ) {
+					$parts[] = $child[ 'text' ];
 				}
 			}
 		}
@@ -254,8 +254,8 @@ class Renderer {
 		$html    = '';
 
 		foreach ( $grouped as $item ) {
-			if ( isset( $item['_listGroup'] ) ) {
-				$html .= $this->render_list( $item['_listGroup'], $item['listItem'] );
+			if ( isset( $item[ '_listGroup' ] ) ) {
+				$html .= $this->render_list( $item[ '_listGroup' ], $item[ 'listItem' ] );
 			} else {
 				$html .= $this->render_block( $item );
 			}
@@ -275,10 +275,10 @@ class Renderer {
 		$current_list = null;
 
 		foreach ( $blocks as $block ) {
-			$list_item = $block['listItem'] ?? null;
+			$list_item = $block[ 'listItem' ] ?? null;
 
 			if ( $list_item ) {
-				if ( null === $current_list || $current_list['listItem'] !== $list_item ) {
+				if ( null === $current_list || $current_list[ 'listItem' ] !== $list_item ) {
 					if ( null !== $current_list ) {
 						$result[] = $current_list;
 					}
@@ -287,7 +287,7 @@ class Renderer {
 						'listItem'   => $list_item,
 					];
 				}
-				$current_list['_listGroup'][] = $block;
+				$current_list[ '_listGroup' ][] = $block;
 			} else {
 				if ( null !== $current_list ) {
 					$result[]     = $current_list;
@@ -330,7 +330,7 @@ class Renderer {
 	 * @return string
 	 */
 	private function render_block( array $block ): string {
-		$type = $block['_type'] ?? '';
+		$type = $block[ '_type' ] ?? '';
 
 		return match ( $type ) {
 			'block'     => $this->render_text_block( $block ),
@@ -350,7 +350,7 @@ class Renderer {
 	 * @return string
 	 */
 	private function render_text_block( array $block ): string {
-		$style   = $block['style'] ?? 'normal';
+		$style   = $block[ 'style' ] ?? 'normal';
 		$content = $this->render_children( $block );
 
 		if ( '' === trim( $content ) ) {
@@ -359,8 +359,8 @@ class Renderer {
 
 		return match ( $style ) {
 			'h1', 'h2', 'h3', 'h4', 'h5', 'h6' => "<{$style}>{$content}</{$style}>\n",
-			'blockquote' => "<blockquote><p>{$content}</p></blockquote>\n",
-			default      => "<p>{$content}</p>\n",
+			'blockquote'                       => "<blockquote><p>{$content}</p></blockquote>\n",
+			default                            => "<p>{$content}</p>\n",
 		};
 	}
 
@@ -371,29 +371,29 @@ class Renderer {
 	 * @return string
 	 */
 	private function render_children( array $block ): string {
-		$children = $block['children'] ?? [];
-		$mark_defs = $block['markDefs'] ?? [];
+		$children  = $block[ 'children' ] ?? [];
+		$mark_defs = $block[ 'markDefs' ] ?? [];
 
 		// Index markDefs by _key.
 		$mark_defs_map = [];
 		foreach ( $mark_defs as $def ) {
-			if ( isset( $def['_key'] ) ) {
-				$mark_defs_map[ $def['_key'] ] = $def;
+			if ( isset( $def[ '_key' ] ) ) {
+				$mark_defs_map[ $def[ '_key' ] ] = $def;
 			}
 		}
 
 		$html = '';
 		foreach ( $children as $child ) {
-			$child_type = $child['_type'] ?? 'span';
+			$child_type = $child[ '_type' ] ?? 'span';
 
 			if ( 'span' === $child_type ) {
-				$text  = esc_html( $child['text'] ?? '' );
-				$marks = $child['marks'] ?? [];
+				$text  = esc_html( $child[ 'text' ] ?? '' );
+				$marks = $child[ 'marks' ] ?? [];
 
 				// Apply marks (decorators and annotations).
 				foreach ( $marks as $mark ) {
 					if ( isset( $mark_defs_map[ $mark ] ) ) {
-						$def = $mark_defs_map[ $mark ];
+						$def  = $mark_defs_map[ $mark ];
 						$text = $this->apply_annotation( $text, $def );
 					} else {
 						$text = $this->apply_decorator( $text, $mark );
@@ -419,14 +419,14 @@ class Renderer {
 	 */
 	private function apply_decorator( string $text, string $decorator ): string {
 		return match ( $decorator ) {
-			'strong'                    => "<strong>{$text}</strong>",
-			'em'                        => "<em>{$text}</em>",
-			'underline'                 => "<u>{$text}</u>",
-			'strike-through', 'strike'  => "<s>{$text}</s>",
-			'code'                      => "<code>{$text}</code>",
-			'subscript'                 => "<sub>{$text}</sub>",
-			'superscript'               => "<sup>{$text}</sup>",
-			default                     => $text,
+			'strong'                   => "<strong>{$text}</strong>",
+			'em'                       => "<em>{$text}</em>",
+			'underline'                => "<u>{$text}</u>",
+			'strike-through', 'strike' => "<s>{$text}</s>",
+			'code'                     => "<code>{$text}</code>",
+			'subscript'                => "<sub>{$text}</sub>",
+			'superscript'              => "<sup>{$text}</sup>",
+			default                    => $text,
 		};
 	}
 
@@ -438,11 +438,11 @@ class Renderer {
 	 * @return string
 	 */
 	private function apply_annotation( string $text, array $def ): string {
-		$type = $def['_type'] ?? '';
+		$type = $def[ '_type' ] ?? '';
 
 		switch ( $type ) {
 			case 'link':
-				$href = $def['href'] ?? '';
+				$href = $def[ 'href' ] ?? '';
 				if ( ! $this->uri_looks_safe( $href ) ) {
 					return $text;
 				}
@@ -497,15 +497,15 @@ class Renderer {
 	 * @return string
 	 */
 	private function render_image_block( array $block ): string {
-		$src     = esc_url( $block['src'] ?? $block['url'] ?? '' );
-		$alt     = esc_attr( $block['alt'] ?? '' );
-		$caption = $block['caption'] ?? '';
+		$src     = esc_url( $block[ 'src' ] ?? $block[ 'url' ] ?? '' );
+		$alt     = esc_attr( $block[ 'alt' ] ?? '' );
+		$caption = $block[ 'caption' ] ?? '';
 
 		if ( '' === $src ) {
 			return '';
 		}
 
-		$html = '<figure class="wp-portable-text-image">';
+		$html  = '<figure class="wp-portable-text-image">';
 		$html .= "<img src=\"{$src}\" alt=\"{$alt}\" />";
 		if ( '' !== $caption ) {
 			$html .= '<figcaption>' . esc_html( $caption ) . '</figcaption>';
@@ -522,8 +522,8 @@ class Renderer {
 	 * @return string
 	 */
 	private function render_code_block( array $block ): string {
-		$code     = esc_html( $block['code'] ?? '' );
-		$language = esc_attr( $block['language'] ?? '' );
+		$code     = esc_html( $block[ 'code' ] ?? '' );
+		$language = esc_attr( $block[ 'language' ] ?? '' );
 
 		$lang_attr = $language ? " class=\"language-{$language}\"" : '';
 		return "<pre><code{$lang_attr}>{$code}</code></pre>\n";
@@ -536,7 +536,7 @@ class Renderer {
 	 * @return string
 	 */
 	private function render_embed_block( array $block ): string {
-		$url = $block['url'] ?? '';
+		$url = $block[ 'url' ] ?? '';
 
 		if ( '' === $url || ! $this->uri_looks_safe( $url ) ) {
 			return '';
@@ -561,19 +561,19 @@ class Renderer {
 	 * @return string
 	 */
 	private function render_table_block( array $block ): string {
-		$rows = $block['rows'] ?? [];
+		$rows = $block[ 'rows' ] ?? [];
 		if ( empty( $rows ) ) {
 			return '';
 		}
 
 		$html = "<table class=\"wp-portable-text-table\">\n";
 		foreach ( $rows as $i => $row ) {
-			$cells = $row['cells'] ?? [];
-			$tag   = ( 0 === $i && ! empty( $block['hasHeaderRow'] ) ) ? 'th' : 'td';
+			$cells = $row[ 'cells' ] ?? [];
+			$tag   = ( 0 === $i && ! empty( $block[ 'hasHeaderRow' ] ) ) ? 'th' : 'td';
 
-			if ( 0 === $i && ! empty( $block['hasHeaderRow'] ) ) {
+			if ( 0 === $i && ! empty( $block[ 'hasHeaderRow' ] ) ) {
 				$html .= "<thead>\n";
-			} elseif ( 1 === $i && ! empty( $block['hasHeaderRow'] ) ) {
+			} elseif ( 1 === $i && ! empty( $block[ 'hasHeaderRow' ] ) ) {
 				$html .= "<tbody>\n";
 			}
 
@@ -583,12 +583,12 @@ class Renderer {
 			}
 			$html .= "</tr>\n";
 
-			if ( 0 === $i && ! empty( $block['hasHeaderRow'] ) ) {
+			if ( 0 === $i && ! empty( $block[ 'hasHeaderRow' ] ) ) {
 				$html .= "</thead>\n";
 			}
 		}
 
-		if ( ! empty( $block['hasHeaderRow'] ) && count( $rows ) > 1 ) {
+		if ( ! empty( $block[ 'hasHeaderRow' ] ) && count( $rows ) > 1 ) {
 			$html .= "</tbody>\n";
 		}
 
@@ -599,36 +599,39 @@ class Renderer {
 	// ---- Markdown alternate representation ----
 
 	/**
-	 * Output <link rel="alternate" type="text/markdown"> in wp_head for PT posts.
+	 * Output <link rel="alternate" type="text/markdown"> in wp_head.
+	 *
+	 * Works on singular posts, home page, and archive pages.
 	 */
 	public function render_markdown_link(): void {
-		if ( ! is_singular() ) {
+		if ( is_singular() ) {
+			$post = get_post();
+			if ( ! $post || ! $this->is_portable_text_content( $post->post_content ) ) {
+				return;
+			}
+			$url   = add_query_arg( 'format', 'markdown', get_permalink( $post ) );
+			$title = get_the_title( $post );
+		} elseif ( is_home() || is_archive() ) {
+			$url   = add_query_arg( 'format', 'markdown' );
+			$title = is_home() ? get_bloginfo( 'name' ) : get_the_archive_title();
+		} else {
 			return;
 		}
 
-		$post = get_post();
-		if ( ! $post || ! $this->is_portable_text_content( $post->post_content ) ) {
-			return;
-		}
-
-		$url = add_query_arg( 'format', 'markdown', get_permalink( $post ) );
 		printf(
 			'<link rel="alternate" type="text/markdown" href="%s" title="%s (Markdown)" />' . "\n",
 			esc_url( $url ),
-			esc_attr( get_the_title( $post ) )
+			esc_attr( $title )
 		);
 	}
 
 	/**
 	 * Serve markdown when ?format=markdown or Accept: text/markdown.
+	 *
+	 * Handles singular posts, home page, and archive pages.
 	 */
 	public function serve_markdown(): void {
-		if ( ! is_singular() ) {
-			return;
-		}
-
-		$post = get_post();
-		if ( ! $post || ! $this->is_portable_text_content( $post->post_content ) ) {
+		if ( ! is_singular() && ! is_home() && ! is_archive() ) {
 			return;
 		}
 
@@ -638,7 +641,7 @@ class Renderer {
 		$format = get_query_var( 'format' );
 		if ( '' === $format ) {
 			// phpcs:ignore WordPress.Security.NonceVerification.Recommended
-			$format = sanitize_text_field( wp_unslash( $_GET['format'] ?? '' ) );
+			$format = sanitize_text_field( wp_unslash( $_GET[ 'format' ] ?? '' ) );
 		}
 		if ( 'markdown' === $format ) {
 			$wants_markdown = true;
@@ -647,7 +650,7 @@ class Renderer {
 		// Check Accept header for content negotiation.
 		if ( ! $wants_markdown ) {
 			// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
-			$accept = wp_unslash( $_SERVER['HTTP_ACCEPT'] ?? '' );
+			$accept = wp_unslash( $_SERVER[ 'HTTP_ACCEPT' ] ?? '' );
 			if ( str_contains( $accept, 'text/markdown' ) ) {
 				$wants_markdown = true;
 			}
@@ -657,9 +660,15 @@ class Renderer {
 			return;
 		}
 
-		$decoded  = json_decode( $post->post_content, true );
-		$title    = get_the_title( $post );
-		$markdown = "# {$title}\n\n" . $this->blocks_to_markdown( $decoded );
+		if ( is_singular() ) {
+			$markdown = $this->markdown_for_singular();
+		} else {
+			$markdown = $this->markdown_for_archive();
+		}
+
+		if ( '' === $markdown ) {
+			return;
+		}
 
 		// Prevent caching proxies from mixing HTML and Markdown responses.
 		header( 'Vary: Accept' );
@@ -669,6 +678,59 @@ class Renderer {
 		// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- raw markdown output.
 		echo $markdown;
 		exit;
+	}
+
+	/**
+	 * Build markdown for a singular post.
+	 *
+	 * @return string Markdown or empty string.
+	 */
+	private function markdown_for_singular(): string {
+		$post = get_post();
+		if ( ! $post || ! $this->is_portable_text_content( $post->post_content ) ) {
+			return '';
+		}
+
+		$decoded = json_decode( $post->post_content, true );
+		$title   = get_the_title( $post );
+
+		return "# {$title}\n\n" . $this->blocks_to_markdown( $decoded );
+	}
+
+	/**
+	 * Build markdown for home/archive pages — concatenates all posts in the loop.
+	 *
+	 * @return string Markdown or empty string.
+	 */
+	private function markdown_for_archive(): string {
+		global $wp_query;
+
+		if ( empty( $wp_query->posts ) ) {
+			return '';
+		}
+
+		// Archive heading.
+		if ( is_home() ) {
+			$heading = get_bloginfo( 'name' );
+		} else {
+			$heading = get_the_archive_title();
+		}
+
+		$parts = [ "# {$heading}\n" ];
+
+		foreach ( $wp_query->posts as $post ) {
+			if ( ! $this->is_portable_text_content( $post->post_content ) ) {
+				continue;
+			}
+
+			$decoded = json_decode( $post->post_content, true );
+			$title   = get_the_title( $post );
+			$link    = get_permalink( $post );
+			$parts[] = "## [{$title}]({$link})\n";
+			$parts[] = $this->blocks_to_markdown( $decoded );
+		}
+
+		return implode( "\n", $parts );
 	}
 
 	/**
@@ -682,7 +744,7 @@ class Renderer {
 			return false;
 		}
 		$decoded = json_decode( $content, true );
-		return is_array( $decoded ) && ! empty( $decoded ) && isset( $decoded[0]['_type'] );
+		return is_array( $decoded ) && ! empty( $decoded ) && isset( $decoded[ 0 ][ '_type' ] );
 	}
 
 	/**
@@ -699,12 +761,12 @@ class Renderer {
 		while ( $i < $count ) {
 			$block = $blocks[ $i ];
 
-			if ( ! empty( $block['listItem'] ) ) {
-				$list_type = $block['listItem'];
+			if ( ! empty( $block[ 'listItem' ] ) ) {
+				$list_type = $block[ 'listItem' ];
 				$ordered   = 'number' === $list_type;
 				$idx       = 1;
 
-				while ( $i < $count && ( $blocks[ $i ]['listItem'] ?? '' ) === $list_type ) {
+				while ( $i < $count && ( $blocks[ $i ][ 'listItem' ] ?? '' ) === $list_type ) {
 					$prefix  = $ordered ? "{$idx}. " : '- ';
 					$parts[] = $prefix . $this->md_render_children( $blocks[ $i ] );
 					++$idx;
@@ -728,14 +790,14 @@ class Renderer {
 	 * @return string
 	 */
 	private function md_render_block( array $block ): string {
-		$type = $block['_type'] ?? '';
+		$type = $block[ '_type' ] ?? '';
 
 		return match ( $type ) {
 			'block'     => $this->md_render_text_block( $block ),
 			'break'     => "---\n",
 			'image'     => $this->md_render_image( $block ),
 			'codeBlock' => $this->md_render_code_block( $block ),
-			'embed'     => ( $block['url'] ?? '' ) . "\n",
+			'embed'     => ( $block[ 'url' ] ?? '' ) . "\n",
 			'table'     => $this->md_render_table( $block ),
 			default     => '',
 		};
@@ -753,7 +815,7 @@ class Renderer {
 			return '';
 		}
 
-		$style = $block['style'] ?? 'normal';
+		$style = $block[ 'style' ] ?? 'normal';
 
 		return match ( $style ) {
 			'h1'         => "# {$content}\n",
@@ -774,24 +836,24 @@ class Renderer {
 	 * @return string
 	 */
 	private function md_render_children( array $block ): string {
-		$children  = $block['children'] ?? [];
-		$mark_defs = $block['markDefs'] ?? [];
+		$children  = $block[ 'children' ] ?? [];
+		$mark_defs = $block[ 'markDefs' ] ?? [];
 
 		$mark_defs_map = [];
 		foreach ( $mark_defs as $def ) {
-			if ( isset( $def['_key'] ) ) {
-				$mark_defs_map[ $def['_key'] ] = $def;
+			if ( isset( $def[ '_key' ] ) ) {
+				$mark_defs_map[ $def[ '_key' ] ] = $def;
 			}
 		}
 
 		$md = '';
 		foreach ( $children as $child ) {
-			if ( 'span' !== ( $child['_type'] ?? '' ) ) {
+			if ( 'span' !== ( $child[ '_type' ] ?? '' ) ) {
 				continue;
 			}
 
-			$text  = $child['text'] ?? '';
-			$marks = $child['marks'] ?? [];
+			$text  = $child[ 'text' ] ?? '';
+			$marks = $child[ 'marks' ] ?? [];
 
 			foreach ( $marks as $mark ) {
 				if ( isset( $mark_defs_map[ $mark ] ) ) {
@@ -816,14 +878,14 @@ class Renderer {
 	 */
 	private function md_apply_decorator( string $text, string $decorator ): string {
 		return match ( $decorator ) {
-			'strong'                    => "**{$text}**",
-			'em'                        => "*{$text}*",
-			'underline'                 => "<u>{$text}</u>",
-			'strike-through', 'strike'  => "~~{$text}~~",
-			'code'                      => "`{$text}`",
-			'subscript'                 => "<sub>{$text}</sub>",
-			'superscript'               => "<sup>{$text}</sup>",
-			default                     => $text,
+			'strong'                   => "**{$text}**",
+			'em'                       => "*{$text}*",
+			'underline'                => "<u>{$text}</u>",
+			'strike-through', 'strike' => "~~{$text}~~",
+			'code'                     => "`{$text}`",
+			'subscript'                => "<sub>{$text}</sub>",
+			'superscript'              => "<sup>{$text}</sup>",
+			default                    => $text,
 		};
 	}
 
@@ -835,8 +897,8 @@ class Renderer {
 	 * @return string
 	 */
 	private function md_apply_annotation( string $text, array $def ): string {
-		if ( 'link' === ( $def['_type'] ?? '' ) && ! empty( $def['href'] ) ) {
-			$href = $def['href'];
+		if ( 'link' === ( $def[ '_type' ] ?? '' ) && ! empty( $def[ 'href' ] ) ) {
+			$href = $def[ 'href' ];
 			return "[{$text}]({$href})";
 		}
 		return $text;
@@ -849,12 +911,12 @@ class Renderer {
 	 * @return string
 	 */
 	private function md_render_image( array $block ): string {
-		$alt = $block['alt'] ?? '';
-		$src = $block['src'] ?? $block['url'] ?? '';
+		$alt = $block[ 'alt' ] ?? '';
+		$src = $block[ 'src' ] ?? $block[ 'url' ] ?? '';
 		$md  = "![{$alt}]({$src})";
 
-		if ( ! empty( $block['caption'] ) ) {
-			$md .= "\n\n*{$block['caption']}*";
+		if ( ! empty( $block[ 'caption' ] ) ) {
+			$md .= "\n\n*{$block[ 'caption' ]}*";
 		}
 
 		return $md . "\n";
@@ -867,8 +929,8 @@ class Renderer {
 	 * @return string
 	 */
 	private function md_render_code_block( array $block ): string {
-		$lang = $block['language'] ?? '';
-		$code = $block['code'] ?? '';
+		$lang = $block[ 'language' ] ?? '';
+		$code = $block[ 'code' ] ?? '';
 
 		return "```{$lang}\n{$code}\n```\n";
 	}
@@ -880,18 +942,18 @@ class Renderer {
 	 * @return string
 	 */
 	private function md_render_table( array $block ): string {
-		$rows = $block['rows'] ?? [];
+		$rows = $block[ 'rows' ] ?? [];
 		if ( empty( $rows ) ) {
 			return '';
 		}
 
 		$lines      = [];
-		$has_header  = ! empty( $block['hasHeaderRow'] );
-		$first_row   = $rows[0]['cells'] ?? [];
-		$col_count   = count( $first_row );
+		$has_header = ! empty( $block[ 'hasHeaderRow' ] );
+		$first_row  = $rows[ 0 ][ 'cells' ] ?? [];
+		$col_count  = count( $first_row );
 
 		foreach ( $rows as $i => $row ) {
-			$cells   = $row['cells'] ?? [];
+			$cells   = $row[ 'cells' ] ?? [];
 			$lines[] = '| ' . implode( ' | ', array_map( 'strval', $cells ) ) . ' |';
 
 			// Add separator after header row.

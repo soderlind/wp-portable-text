@@ -8,7 +8,7 @@
  * @package WPPortableText
  */
 
-declare( strict_types=1 );
+declare(strict_types=1);
 
 namespace WPPortableText;
 
@@ -25,7 +25,7 @@ class Query {
 	/**
 	 * REST API namespace.
 	 */
-	private const string NAMESPACE = 'wp-portable-text/v1';
+	private const stringNAMESPACE = 'wp-portable-text/v1';
 
 	/**
 	 * Allowed block types for the block_type parameter.
@@ -71,7 +71,7 @@ class Query {
 	 */
 	public function register_routes(): void {
 		register_rest_route(
-			self::NAMESPACE,
+			self::NAMESPACE ,
 			'/query',
 			[
 				'methods'             => WP_REST_Server::READABLE,
@@ -82,7 +82,7 @@ class Query {
 		);
 
 		register_rest_route(
-			self::NAMESPACE,
+			self::NAMESPACE ,
 			'/blocks',
 			[
 				'methods'             => WP_REST_Server::READABLE,
@@ -104,8 +104,8 @@ class Query {
 		$cached    = $this->cache_get( $cache_key );
 
 		if ( false !== $cached ) {
-			$response = new WP_REST_Response( $cached['data'] );
-			foreach ( $cached['headers'] as $name => $value ) {
+			$response = new WP_REST_Response( $cached[ 'data' ] );
+			foreach ( $cached[ 'headers' ] as $name => $value ) {
 				$response->header( $name, $value );
 			}
 			$response->header( 'X-WP-PT-Cache', 'HIT' );
@@ -139,7 +139,7 @@ class Query {
 			}
 
 			$decoded = json_decode( $post->post_content, true );
-			if ( ! is_array( $decoded ) || ! isset( $decoded[0]['_type'] ) ) {
+			if ( ! is_array( $decoded ) || ! isset( $decoded[ 0 ][ '_type' ] ) ) {
 				continue;
 			}
 
@@ -196,8 +196,8 @@ class Query {
 		$cached    = $this->cache_get( $cache_key );
 
 		if ( false !== $cached ) {
-			$response = new WP_REST_Response( $cached['data'] );
-			foreach ( $cached['headers'] as $name => $value ) {
+			$response = new WP_REST_Response( $cached[ 'data' ] );
+			foreach ( $cached[ 'headers' ] as $name => $value ) {
 				$response->header( $name, $value );
 			}
 			$response->header( 'X-WP-PT-Cache', 'HIT' );
@@ -229,7 +229,7 @@ class Query {
 			}
 
 			$decoded = json_decode( $post->post_content, true );
-			if ( ! is_array( $decoded ) || ! isset( $decoded[0]['_type'] ) ) {
+			if ( ! is_array( $decoded ) || ! isset( $decoded[ 0 ][ '_type' ] ) ) {
 				continue;
 			}
 
@@ -239,7 +239,7 @@ class Query {
 				}
 
 				// Filter by language for code blocks.
-				if ( null !== $language && ( $block['language'] ?? '' ) !== $language ) {
+				if ( null !== $language && ( $block[ 'language' ] ?? '' ) !== $language ) {
 					continue;
 				}
 
@@ -377,12 +377,12 @@ class Query {
 	 */
 	private function block_matches( array $block, ?string $block_type, ?string $has, ?string $style ): bool {
 		// Filter by _type.
-		if ( null !== $block_type && ( $block['_type'] ?? '' ) !== $block_type ) {
+		if ( null !== $block_type && ( $block[ '_type' ] ?? '' ) !== $block_type ) {
 			return false;
 		}
 
 		// Filter by style.
-		if ( null !== $style && ( $block['style'] ?? '' ) !== $style ) {
+		if ( null !== $style && ( $block[ 'style' ] ?? '' ) !== $style ) {
 			return false;
 		}
 
@@ -405,17 +405,17 @@ class Query {
 	 */
 	private function block_has_feature( array $block, string $feature ): bool {
 		// Check markDefs for annotations (e.g., 'link').
-		$mark_defs = $block['markDefs'] ?? [];
+		$mark_defs = $block[ 'markDefs' ] ?? [];
 		foreach ( $mark_defs as $def ) {
-			if ( ( $def['_type'] ?? '' ) === $feature ) {
+			if ( ( $def[ '_type' ] ?? '' ) === $feature ) {
 				return true;
 			}
 		}
 
 		// Check children spans for decorator marks (e.g., 'strong', 'em').
-		$children = $block['children'] ?? [];
+		$children = $block[ 'children' ] ?? [];
 		foreach ( $children as $child ) {
-			$marks = $child['marks'] ?? [];
+			$marks = $child[ 'marks' ] ?? [];
 			if ( in_array( $feature, $marks, true ) ) {
 				return true;
 			}

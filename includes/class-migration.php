@@ -5,7 +5,7 @@
  * @package WPPortableText
  */
 
-declare( strict_types=1 );
+declare(strict_types=1);
 
 namespace WPPortableText;
 
@@ -50,10 +50,10 @@ class Migration {
 	 * @param array<string,mixed> $assoc_args Named arguments.
 	 */
 	public function migrate( array $args, array $assoc_args ): void {
-		$post_type = $assoc_args['post-type'] ?? 'post';
-		$dry_run   = isset( $assoc_args['dry-run'] );
-		$node_path = $assoc_args['node-path'] ?? 'node';
-		$limit     = isset( $assoc_args['limit'] ) ? (int) $assoc_args['limit'] : -1;
+		$post_type = $assoc_args[ 'post-type' ] ?? 'post';
+		$dry_run   = isset( $assoc_args[ 'dry-run' ] );
+		$node_path = $assoc_args[ 'node-path' ] ?? 'node';
+		$limit     = isset( $assoc_args[ 'limit' ] ) ? (int) $assoc_args[ 'limit' ] : -1;
 
 		// Verify the conversion script exists.
 		$script_path = PLUGIN_DIR . '/scripts/convert.mjs';
@@ -79,18 +79,18 @@ class Migration {
 			'fields'         => 'ids',
 		];
 
-		if ( ! empty( $assoc_args['ids'] ) ) {
-			$query_args['post__in'] = array_map( 'intval', explode( ',', $assoc_args['ids'] ) );
+		if ( ! empty( $assoc_args[ 'ids' ] ) ) {
+			$query_args[ 'post__in' ] = array_map( 'intval', explode( ',', $assoc_args[ 'ids' ] ) );
 		}
 
-		$paged    = 1;
-		$success  = 0;
-		$skipped  = 0;
-		$failed   = 0;
-		$total    = 0;
+		$paged   = 1;
+		$success = 0;
+		$skipped = 0;
+		$failed  = 0;
+		$total   = 0;
 
 		do {
-			$query_args['paged'] = $paged;
+			$query_args[ 'paged' ] = $paged;
 			$query               = new \WP_Query( $query_args );
 			$post_ids            = $query->posts;
 
@@ -120,7 +120,7 @@ class Migration {
 
 				// Skip if already PT JSON.
 				$decoded = json_decode( $content, true );
-				if ( is_array( $decoded ) && isset( $decoded[0]['_type'] ) ) {
+				if ( is_array( $decoded ) && isset( $decoded[ 0 ][ '_type' ] ) ) {
 					\WP_CLI::log( sprintf( '  [skip] Post %d: already Portable Text.', $post_id ) );
 					++$skipped;
 					continue;
@@ -142,7 +142,7 @@ class Migration {
 				}
 
 				// Save converted content.
-				$json = wp_json_encode( $result, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES );
+				$json    = wp_json_encode( $result, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES );
 				$updated = wp_update_post(
 					[
 						'ID'           => $post_id,
@@ -161,7 +161,7 @@ class Migration {
 			}
 
 			++$paged;
-		} while ( count( $post_ids ) === $query_args['posts_per_page'] );
+		} while ( count( $post_ids ) === $query_args[ 'posts_per_page' ] );
 
 		$mode = $dry_run ? ' (dry run)' : '';
 		\WP_CLI::success( sprintf( 'Done%s. Success: %d, Skipped: %d, Failed: %d.', $mode, $success, $skipped, $failed ) );

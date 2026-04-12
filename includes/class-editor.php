@@ -5,7 +5,7 @@
  * @package WPPortableText
  */
 
-declare( strict_types=1 );
+declare(strict_types=1);
 
 namespace WPPortableText;
 
@@ -155,16 +155,9 @@ class Editor {
 		?>
 		<div id="wp-portable-text-wrap" class="postarea">
 			<input type="hidden" name="wp_portable_text_nonce" value="<?php echo esc_attr( $nonce ); ?>" />
-			<textarea
-				id="wp-portable-text-content"
-				name="content"
-				class="screen-reader-text"
-				aria-hidden="true"
-			><?php echo esc_textarea( $textarea_content ); ?></textarea>
-			<div
-				id="wp-portable-text-editor"
-				data-post-id="<?php echo esc_attr( (string) $post->ID ); ?>"
-			></div>
+			<textarea id="wp-portable-text-content" name="content" class="screen-reader-text"
+				aria-hidden="true"><?php echo esc_textarea( $textarea_content ); ?></textarea>
+			<div id="wp-portable-text-editor" data-post-id="<?php echo esc_attr( (string) $post->ID ); ?>"></div>
 		</div>
 		<?php
 	}
@@ -198,8 +191,8 @@ class Editor {
 		wp_enqueue_script(
 			'wp-portable-text-editor',
 			plugin_url() . 'build/editor/index.js',
-			$asset['dependencies'],
-			$asset['version'],
+			$asset[ 'dependencies' ],
+			$asset[ 'version' ],
 			true
 		);
 
@@ -207,7 +200,7 @@ class Editor {
 			'wp-portable-text-editor',
 			plugin_url() . 'build/editor/index.css',
 			[],
-			$asset['version']
+			$asset[ 'version' ]
 		);
 
 		// Pass current post content to the editor.
@@ -243,7 +236,7 @@ class Editor {
 
 		// Try JSON decode first.
 		$decoded = json_decode( $content, true );
-		if ( is_array( $decoded ) && ! empty( $decoded ) && isset( $decoded[0]['_type'] ) ) {
+		if ( is_array( $decoded ) && ! empty( $decoded ) && isset( $decoded[ 0 ][ '_type' ] ) ) {
 			return $decoded;
 		}
 
@@ -327,7 +320,7 @@ class Editor {
 
 		// Headings.
 		if ( preg_match( '/^h([1-6])$/', $tag, $m ) ) {
-			return $this->make_rich_text_block( $node, 'h' . $m[1] );
+			return $this->make_rich_text_block( $node, 'h' . $m[ 1 ] );
 		}
 
 		// Blockquote.
@@ -352,13 +345,13 @@ class Editor {
 
 		// Pre/code blocks.
 		if ( 'pre' === $tag ) {
-			$code = $node->textContent;
-			$lang = '';
+			$code    = $node->textContent;
+			$lang    = '';
 			$code_el = $node->getElementsByTagName( 'code' )->item( 0 );
 			if ( $code_el ) {
 				$code = $code_el->textContent;
 				if ( preg_match( '/language-(\w+)/', $code_el->getAttribute( 'class' ), $m ) ) {
-					$lang = $m[1];
+					$lang = $m[ 1 ];
 				}
 			}
 			return [
@@ -471,8 +464,8 @@ class Editor {
 				continue;
 			}
 
-			$tag        = strtolower( $child->tagName );
-			$new_marks  = $marks;
+			$tag       = strtolower( $child->tagName );
+			$new_marks = $marks;
 
 			switch ( $tag ) {
 				case 'strong':
@@ -535,8 +528,8 @@ class Editor {
 		$items = [];
 		foreach ( $list->getElementsByTagName( 'li' ) as $li ) {
 			$block             = $this->make_rich_text_block( $li, 'normal' );
-			$block['listItem'] = $listItem;
-			$block['level']    = 1;
+			$block[ 'listItem' ] = $listItem;
+			$block[ 'level' ]    = 1;
 			$items[]           = $block;
 		}
 
@@ -545,7 +538,7 @@ class Editor {
 		// Since dom_node_to_block returns a single block, we store extras.
 		if ( ! empty( $items ) ) {
 			$this->pending_blocks = array_merge( $this->pending_blocks, array_slice( $items, 1 ) );
-			return $items[0];
+			return $items[ 0 ];
 		}
 
 		return null;
@@ -584,7 +577,7 @@ class Editor {
 
 		$caption_el = $figure->getElementsByTagName( 'figcaption' )->item( 0 );
 		if ( $caption_el ) {
-			$block['caption'] = trim( $caption_el->textContent );
+			$block[ 'caption' ] = trim( $caption_el->textContent );
 		}
 
 		return $block;

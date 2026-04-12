@@ -5,7 +5,7 @@
  * @package WPPortableText
  */
 
-declare( strict_types=1 );
+declare(strict_types=1);
 
 namespace WPPortableText;
 
@@ -40,22 +40,22 @@ class Content_Filter {
 	 */
 	public function filter_post_data( array $data, array $postarr ): array {
 		// Only act when our editor submitted the form.
-		if ( empty( $postarr['wp_portable_text_nonce'] ) ) {
+		if ( empty( $postarr[ 'wp_portable_text_nonce' ] ) ) {
 			return $data;
 		}
 
-		if ( ! wp_verify_nonce( $postarr['wp_portable_text_nonce'], 'wp_portable_text_save' ) ) {
+		if ( ! wp_verify_nonce( $postarr[ 'wp_portable_text_nonce' ], 'wp_portable_text_save' ) ) {
 			return $data;
 		}
 
 		// Capability check — must be able to edit posts.
-		$post_type = $data['post_type'] ?? 'post';
+		$post_type     = $data[ 'post_type' ] ?? 'post';
 		$post_type_obj = get_post_type_object( $post_type );
 		if ( ! $post_type_obj || ! current_user_can( $post_type_obj->cap->edit_posts ) ) {
 			return $data;
 		}
 
-		$raw_content = wp_unslash( $data['post_content'] );
+		$raw_content = wp_unslash( $data[ 'post_content' ] );
 
 		// Validate that it's a JSON array (PT document).
 		$decoded = json_decode( $raw_content, true );
@@ -65,7 +65,7 @@ class Content_Filter {
 
 		// Re-encode with consistent formatting and re-slash for WP.
 		$clean_json           = wp_json_encode( $decoded, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES );
-		$data['post_content'] = wp_slash( $clean_json );
+		$data[ 'post_content' ] = wp_slash( $clean_json );
 
 		return $data;
 	}
@@ -78,12 +78,12 @@ class Content_Filter {
 	 * @return array<string,mixed>
 	 */
 	public function populate_content_filtered( array $data, array $postarr ): array {
-		$raw_content = wp_unslash( $data['post_content'] );
+		$raw_content = wp_unslash( $data[ 'post_content' ] );
 		$decoded     = json_decode( $raw_content, true );
 
 		if ( is_array( $decoded ) && $this->is_portable_text( $decoded ) ) {
-			$plaintext                         = $this->extract_plaintext( $decoded );
-			$data['post_content_filtered'] = wp_slash( $plaintext );
+			$plaintext                     = $this->extract_plaintext( $decoded );
+			$data[ 'post_content_filtered' ] = wp_slash( $plaintext );
 		}
 
 		return $data;
@@ -109,7 +109,7 @@ class Content_Filter {
 		}
 
 		// First block must have _type.
-		return isset( $blocks[0]['_type'] );
+		return isset( $blocks[ 0 ][ '_type' ] );
 	}
 
 	/**
@@ -128,11 +128,11 @@ class Content_Filter {
 				continue;
 			}
 
-			if ( 'block' === ( $block['_type'] ?? '' ) && ! empty( $block['children'] ) ) {
+			if ( 'block' === ( $block[ '_type' ] ?? '' ) && ! empty( $block[ 'children' ] ) ) {
 				$spans = [];
-				foreach ( $block['children'] as $child ) {
-					if ( 'span' === ( $child['_type'] ?? '' ) && isset( $child['text'] ) ) {
-						$spans[] = $child['text'];
+				foreach ( $block[ 'children' ] as $child ) {
+					if ( 'span' === ( $child[ '_type' ] ?? '' ) && isset( $child[ 'text' ] ) ) {
+						$spans[] = $child[ 'text' ];
 					}
 				}
 				if ( $spans ) {

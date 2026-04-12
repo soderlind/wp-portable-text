@@ -10,9 +10,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - **Markdown alternate representation** for AI clients and tools:
-  - `<link rel="alternate" type="text/markdown" ...>` in `wp_head` for all PT posts.
-  - `?format=markdown` query parameter serves the post as `text/markdown`.
-  - `Accept: text/markdown` content negotiation on singular post URLs.
+  - `<link rel="alternate" type="text/markdown" ...>` in `wp_head` for singular posts, home, and archive pages.
+  - `?format=markdown` query parameter serves content as `text/markdown`.
+  - `Accept: text/markdown` content negotiation on singular, home, and archive URLs.
+  - Archive/home markdown: site/archive title as `h1`, each post as linked `h2` followed by its content.
   - PHP `blocks_to_markdown()` renderer (paragraphs, headings, blockquotes, lists, images with captions, code blocks with language, tables, links, decorators, embeds, horizontal rules).
   - `Vary: Accept` and `X-Robots-Tag: noindex` headers on markdown responses.
 - 12 new tests for markdown rendering (84 total).
