@@ -1,6 +1,6 @@
 {
 	"name": "wp-portable-text",
-	"version": "0.1.9",
+	"version": "0.1.15",
 	"private": true,
 	"description": "Portable Text editor for WordPress",
 	"scripts": {

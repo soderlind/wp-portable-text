@@ -3,7 +3,7 @@
  * Plugin Name: WP Portable Text
  * Plugin URI:  https://github.com/soderlind/wp-portable-text
  * Description: Replaces the Gutenberg block editor with a Portable Text editor. Stores content as structured JSON, renders via PHP.
- * Version:     0.1.9
+ * Version:     0.1.15
  * Author:      Per Soderlind
  * Author URI:  https://developer.suspended.dev
  * License:     GPL-2.0-or-later
@@ -37,7 +37,7 @@ if ( file_exists( __DIR__ . '/vendor/autoload.php' ) ) {
 	} );
 }
 
-const VERSION    = '0.1.9';
+const VERSION    = '0.1.15';
 const PLUGIN_DIR = __DIR__;
 const PLUGIN_URL = null; // Resolved at runtime via plugin_dir_url().
 
