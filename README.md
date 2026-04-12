@@ -8,6 +8,8 @@
 
 A WordPress plugin that replaces the Gutenberg block editor with a [Portable Text](https://www.portabletext.org/) editor. Content is stored as structured JSON in `post_content` and rendered to HTML via PHP on the front end.
 
+[<img src="https://img.shields.io/badge/Launch%20in-WordPress%20Playground-3858e9?logo=wordpress&logoColor=white" alt="Launch in WordPress Playground" height="28">](https://playground.wordpress.net/?blueprint-url=https://raw.githubusercontent.com/soderlind/wp-portable-text/main/blueprint.json)
+
 ## Why Portable Text?
 
 Portable Text is a JSON-based rich text specification created by Sanity.io. Unlike Gutenberg's HTML comment delimiters, PT stores content as a clean, typed data structure — making it easy to render to any format (HTML, Markdown, RSS, email, native apps) and query programmatically.
@@ -37,6 +39,14 @@ It also makes it easy to [query content](docs/QUERY.md) by block type, style, or
 - Node.js 18+ (for building)
 
 ## Installation
+
+
+1. Download [\`wp-portable-text.zip\`](https://github.com/soderlind/wp-portable-text/releases/latest/download/wp-portable-text.zip)
+2. Go to **Plugins > Add New > Upload Plugin**
+3. Upload the zip file and activate
+
+
+Or clone the repo and install dependencies:
 
 ```bash
 cd wp-content/plugins/wp-portable-text
