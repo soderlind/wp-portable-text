@@ -9,11 +9,14 @@
 		{
 			"step": "installPlugin",
 			"pluginData": {
-				"resource": "url",
-				"url": "https://github.com/soderlind/wp-portable-text/releases/latest/download/wp-portable-text.zip"
+				"resource": "git:directory",
+				"url": "https://github.com/soderlind/wp-portable-text",
+				"ref": "main",
+				"refType": "branch"
 			},
 			"options": {
-				"activate": false
+				"activate": false,
+				"targetFolderName": "wp-portable-text"
 			}
 		},
 		{
