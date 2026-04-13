@@ -108,13 +108,15 @@ The editor's Portable Text schema is defined in `src/editor/schema.ts`:
 | **Lists**       | bullet, number                                                      |
 | **Block objects**| break, image (src, alt, caption, attachmentId), codeBlock (code, language), embed (url), table (rows, hasHeaderRow) |
 
-## PHP Filters
+## Serializers
 
-Customize the HTML output via filters on the PHP renderer:
+The PHP renderer uses a Strategy pattern with pluggable serializers (`Html_Serializer`, `Markdown_Serializer`) and extension filters for custom block types. See [docs/SERIALIZERS.md](docs/SERIALIZERS.md) for architecture, interface methods, and examples.
 
-- `wp_portable_text_render_block` — Filter each block's HTML
-- `wp_portable_text_render_inline` — Filter inline element HTML
-- `wp_portable_text_render_annotation` — Filter annotation (e.g. link) HTML
+**PHP Filters** for customizing HTML output:
+
+- `wp_portable_text_render_block` — Render an unknown block `_type`
+- `wp_portable_text_render_inline` — Render an inline object
+- `wp_portable_text_render_annotation` — Render an unknown annotation type
 
 ## Markdown Alternate
 
