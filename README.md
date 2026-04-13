@@ -173,24 +173,3 @@ Each block is rendered as HTML and includes a "From: [Post Title]" link back to 
 
 GPL-2.0-or-later
 
-## AI Contribution Attribution
-
-When AI tools contribute to development, proper attribution
-helps track the evolving role of AI in the development process.
-Contributions should include an Assisted-by tag in the following format:
-
-`Assisted-by: AGENT_NAME:MODEL_VERSION [TOOL1] [TOOL2]`
-
-Where:
-
-* `AGENT_NAME` is the name of the AI tool or framework
-* `MODEL_VERSION` is the specific model version used
-* `[TOOL1] [TOOL2]` are optional specialized analysis tools used
-  (e.g., coccinelle, sparse, smatch, clang-tidy)
-
-Basic development tools (git, gcc, make, editors) should not be listed.
-
-Example:
-
-`Assisted-by: Claude:claude-3-opus coccinelle sparse`
-
