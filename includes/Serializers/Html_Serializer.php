@@ -24,7 +24,7 @@ class Html_Serializer implements Serializer {
 			'em'                       => "<em>{$text}</em>",
 			'underline'                => "<u>{$text}</u>",
 			'strike-through', 'strike' => "<s>{$text}</s>",
-			'code'                     => "<code>{$text}</code>",
+			'code'                     => "<code class=\"wp-portable-text-inline-code\">{$text}</code>",
 			'subscript'                => "<sub>{$text}</sub>",
 			'superscript'              => "<sup>{$text}</sup>",
 			default                    => $text,
@@ -89,11 +89,21 @@ class Html_Serializer implements Serializer {
 	}
 
 	public function render_code_block( array $block ): string {
-		$code     = esc_html( $block[ 'code' ] ?? '' );
+		$code     = $this->normalize_code_content( (string) ( $block[ 'code' ] ?? '' ) );
+		$code     = esc_html( $code );
 		$language = esc_attr( $block[ 'language' ] ?? '' );
 
-		$lang_attr = $language ? " class=\"language-{$language}\"" : '';
-		return "<pre><code{$lang_attr}>{$code}</code></pre>\n";
+		$code_classes = [ 'wp-portable-text-code' ];
+		$language_badge = '';
+
+		if ( '' !== $language ) {
+			$code_classes[] = 'language-' . $language;
+			$language_badge = "<span class=\"wp-portable-text-code-language\">{$language}</span>";
+		}
+
+		$class_attr = ' class="' . implode( ' ', $code_classes ) . '"';
+
+		return "<pre class=\"wp-portable-text-code-block\">{$language_badge}<code{$class_attr}>{$code}</code></pre>\n";
 	}
 
 	public function render_embed( array $block ): string {
@@ -192,5 +202,19 @@ class Html_Serializer implements Serializer {
 		}
 
 		return true;
+	}
+
+	/**
+	 * Normalize stored code content for rendering.
+	 *
+	 * Converts literal escaped newline sequences into actual line breaks so
+	 * imported content like "line one\\nline two" renders as multiline code.
+	 *
+	 * @param string $code Raw code content.
+	 * @return string
+	 */
+	private function normalize_code_content( string $code ): string {
+		$code = str_replace( [ "\r\n", "\r" ], "\n", $code );
+		return str_replace( [ '\\r\\n', '\\n', '\\r' ], "\n", $code );
 	}
 }

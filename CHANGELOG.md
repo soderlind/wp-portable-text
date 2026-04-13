@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.1.16] - 2026-04-13
 
+### Changed
+
+- **Formatted rendered code output** with stable frontend classes and bundled CSS for inline code and code blocks.
+  - Inline code now renders as `code.wp-portable-text-inline-code`.
+  - Code blocks now render as `pre.wp-portable-text-code-block > code.wp-portable-text-code`.
+  - Language-aware blocks keep the existing `language-*` class and render a dedicated `.wp-portable-text-code-language` badge.
+  - Multiline code now preserves line breaks in the frontend output and uses a dedicated language badge element instead of a pseudo-element.
+  - Literal `\n` sequences in code content are now rendered as real line breaks.
+
 ### Added
 
 - **Block type archive pages** at `/block/{type}/` — frontend pages listing all blocks of a given type across posts, rendered as HTML with links to the source post.

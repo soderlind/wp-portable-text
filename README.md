@@ -32,6 +32,7 @@ It also makes it easy to [query content](docs/QUERY.md) by block type, style, or
 - **Click-to-edit** image blocks with alt text, caption, and replace support
 - **Preview panel** below the editor with JSON, HTML, and Markdown toggle views
 - **PHP renderer** converts PT JSON → HTML on `the_content`, with pluggable serializers and filters for customization
+- **Frontend code formatting** for rendered inline code and fenced code blocks via bundled plugin CSS classes
 - **Markdown alternate** — `Accept: text/markdown` or `?format=markdown` serves content as Markdown for AI clients and tools
 - **Plaintext search** — `post_content_filtered` is populated with a plain-text version for WordPress search
 - **HTML → PT migration** for existing content using DOMDocument
@@ -111,6 +112,11 @@ The editor's Portable Text schema is defined in `src/editor/schema.ts`:
 ## Serializers
 
 The PHP renderer uses a Strategy pattern with pluggable serializers (`Html_Serializer`, `Markdown_Serializer`) and extension filters for custom block types. See [docs/SERIALIZERS.md](docs/SERIALIZERS.md) for architecture, interface methods, and examples.
+
+Rendered code output uses stable frontend classes so themes can override presentation without replacing the serializer:
+
+- Inline code: `code.wp-portable-text-inline-code`
+- Code blocks: `pre.wp-portable-text-code-block > code.wp-portable-text-code`
 
 **PHP Filters** for customizing HTML output:
 

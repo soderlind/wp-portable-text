@@ -47,6 +47,10 @@ class RendererTest extends TestCase {
 			->once()
 			->with( 'the_content', [ $this->renderer, 'render' ], 5 );
 
+		Functions\expect( 'add_action' )
+			->once()
+			->with( 'wp_enqueue_scripts', [ $this->renderer, 'enqueue_frontend_styles' ] );
+
 		Functions\expect( 'add_filter' )
 			->once()
 			->with( 'wp_trim_excerpt', [ $this->renderer, 'trim_excerpt' ], 5, 2 );
@@ -190,7 +194,7 @@ class RendererTest extends TestCase {
 
 	public function test_render_code(): void {
 		$result = $this->renderWithDecorator( 'code', 'inline code' );
-		$this->assertSame( "<p><code>inline code</code></p>\n", $result );
+		$this->assertSame( "<p><code class=\"wp-portable-text-inline-code\">inline code</code></p>\n", $result );
 	}
 
 	public function test_render_subscript(): void {
@@ -363,8 +367,35 @@ class RendererTest extends TestCase {
 		] );
 
 		$result = $this->renderer->render( $json );
-		$this->assertStringContainsString( '<pre><code class="language-php">', $result );
+		$this->assertStringContainsString( '<pre class="wp-portable-text-code-block"><span class="wp-portable-text-code-language">php</span><code class="wp-portable-text-code language-php">', $result );
 		$this->assertStringContainsString( 'echo &quot;hello&quot;;', $result );
+	}
+
+	public function test_render_code_block_preserves_line_breaks(): void {
+		$json = json_encode( [
+			[
+				'_type' => 'codeBlock',
+				'_key'  => 'cb3',
+				'code'  => "line one\nline two",
+			],
+		] );
+
+		$result = $this->renderer->render( $json );
+		$this->assertStringContainsString( "line one\nline two", html_entity_decode( $result, ENT_QUOTES, 'UTF-8' ) );
+	}
+
+	public function test_render_code_block_converts_literal_newline_sequences(): void {
+		$json = json_encode( [
+			[
+				'_type' => 'codeBlock',
+				'_key'  => 'cb4',
+				'code'  => 'line one\\nline two',
+			],
+		] );
+
+		$result = $this->renderer->render( $json );
+		$this->assertStringContainsString( "line one\nline two", html_entity_decode( $result, ENT_QUOTES, 'UTF-8' ) );
+		$this->assertStringNotContainsString( 'line one\\nline two', html_entity_decode( $result, ENT_QUOTES, 'UTF-8' ) );
 	}
 
 	public function test_render_code_block_no_language(): void {
@@ -377,7 +408,7 @@ class RendererTest extends TestCase {
 		] );
 
 		$result = $this->renderer->render( $json );
-		$this->assertStringContainsString( '<pre><code>', $result );
+		$this->assertStringContainsString( '<pre class="wp-portable-text-code-block"><code class="wp-portable-text-code">', $result );
 		$this->assertStringNotContainsString( 'class="language-"', $result );
 	}
 

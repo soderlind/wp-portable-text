@@ -28,6 +28,9 @@ class Renderer {
 		// Run early (priority 5) so shortcodes/embeds/etc. can still process.
 		add_filter( 'the_content', [ $this, 'render' ], 5 );
 
+		// Provide base frontend styling for rendered code blocks and inline code.
+		add_action( 'wp_enqueue_scripts', [ $this, 'enqueue_frontend_styles' ] );
+
 		// Provide PT-aware excerpt generation.
 		add_filter( 'wp_trim_excerpt', [ $this, 'trim_excerpt' ], 5, 2 );
 
@@ -264,6 +267,18 @@ class Renderer {
 	 */
 	public function blocks_to_markdown( array $blocks ): string {
 		return $this->blocks_to_format( $blocks, new Markdown_Serializer() );
+	}
+
+	/**
+	 * Enqueue frontend styles for rendered Portable Text output.
+	 */
+	public function enqueue_frontend_styles(): void {
+		wp_enqueue_style(
+			'wp-portable-text-frontend',
+			plugin_url() . 'assets/frontend.css',
+			[],
+			VERSION
+		);
 	}
 
 	// ---- Shared Portable Text walker ----

@@ -99,7 +99,7 @@ function renderBlock(block: Block): string {
 			return `<figure><img src="${src}" alt="${alt}" />${caption}</figure>`;
 		}
 		case 'codeBlock':
-			return `<pre><code>${esc(String(block.code ?? ''))}</code></pre>`;
+			return renderCodeBlockHtml(block);
 		case 'embed':
 			return `<p><a href="${esc(String(block.url ?? ''))}">${esc(String(block.url ?? ''))}</a></p>`;
 		default:
@@ -151,11 +151,26 @@ function applyDecoratorHtml(text: string, dec: string): string {
 		case 'em': return `<em>${text}</em>`;
 		case 'underline': return `<u>${text}</u>`;
 		case 'strike-through': return `<s>${text}</s>`;
-		case 'code': return `<code>${text}</code>`;
+		case 'code': return `<code class="wp-portable-text-inline-code">${text}</code>`;
 		case 'subscript': return `<sub>${text}</sub>`;
 		case 'superscript': return `<sup>${text}</sup>`;
 		default: return text;
 	}
+}
+
+function renderCodeBlockHtml(block: Block): string {
+	const language = String(block.language ?? '');
+	const classes = ['wp-portable-text-code'];
+	const languageBadge = language
+		? `<span class="wp-portable-text-code-language">${esc(language)}</span>`
+		: '';
+	const code = normalizeCodeContent(String(block.code ?? ''));
+
+	if (language) {
+		classes.push(`language-${escAttr(language)}`);
+	}
+
+	return `<pre class="wp-portable-text-code-block">${languageBadge}<code class="${classes.join(' ')}">${esc(code)}</code></pre>`;
 }
 
 function applyAnnotationHtml(text: string, def: MarkDef): string {
@@ -255,4 +270,15 @@ function esc(str: string): string {
 		.replace(/</g, '&lt;')
 		.replace(/>/g, '&gt;')
 		.replace(/"/g, '&quot;');
+}
+
+function escAttr(str: string): string {
+	return esc(str).replace(/'/g, '&#39;');
+}
+
+function normalizeCodeContent(str: string): string {
+	return str
+		.replace(/\r\n/g, '\n')
+		.replace(/\r/g, '\n')
+		.replace(/\\r\\n|\\n|\\r/g, '\n');
 }

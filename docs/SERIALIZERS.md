@@ -49,6 +49,7 @@ Every serializer must implement these methods:
 Produces WordPress-safe HTML. Key behaviors:
 
 - **Text escaping**: Uses `esc_html()`.
+- **Code formatting hooks**: Inline code renders as `code.wp-portable-text-inline-code`; code blocks render as `pre.wp-portable-text-code-block > code.wp-portable-text-code`, with `language-*` on the code element and a visible `.wp-portable-text-code-language` badge when a language is present.
 - **Links**: Validates URIs (rejects `javascript:`, `data:`, `vbscript:`), applies `esc_url()`, adds `rel="noopener noreferrer"` for external links.
 - **Images**: Wrapped in `<figure class="wp-portable-text-image">` with optional `<figcaption>`.
 - **Tables**: Uses `<table class="wp-portable-text-table">` with optional `<thead>` when `hasHeaderRow` is set.
