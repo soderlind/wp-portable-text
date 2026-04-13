@@ -47,7 +47,7 @@ It also makes it easy to [query content](docs/QUERY.md) by block type, style, or
 ## Installation
 
 
-1. Download [\`wp-portable-text.zip\`](https://github.com/soderlind/wp-portable-text/releases/latest/download/wp-portable-text.zip)
+1. Download [`wp-portable-text.zip`](https://github.com/soderlind/wp-portable-text/releases/latest/download/wp-portable-text.zip)
 2. Go to **Plugins > Add New > Upload Plugin**
 3. Upload the zip file and activate
 
