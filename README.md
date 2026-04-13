@@ -8,7 +8,7 @@
 
 A WordPress plugin that replaces the Gutenberg block editor with a [Portable Text](https://www.portabletext.org/) editor. Content is stored as structured JSON in `post_content` and rendered to HTML via PHP on the front end.
 
-[<img src="https://img.shields.io/badge/Launch%20in-WordPress%20Playground-3858e9?logo=wordpress&logoColor=white" alt="Launch in WordPress Playground" height="28">](https://playground.wordpress.net/?blueprint-url=https://raw.githubusercontent.com/soderlind/wp-portable-text/main/blueprint.json)
+[<img src="https://img.shields.io/badge/Launch%20in-WordPress%20Playground-3858e9?logo=wordpress&logoColor=white" alt="Launch in WordPress Playground" height="28">](https://playground.wordpress.net/?blueprint-url=https://raw.githubusercontent.com/soderlind/wp-portable-text/main/blueprint-editor.json)
 
 <img width="100%" alt="Screenshot 2026-04-13 at 00 19 33" src="https://github.com/user-attachments/assets/7ae326ce-458e-41d5-9482-043a08e70e8f" />
 
@@ -149,6 +149,8 @@ A GROQ-like query API lets you find posts by block type, style, or annotation, a
 ## Block Type Archive Pages
 
 The plugin provides frontend archive pages at `/block/{type}/` that display all blocks of a given type across posts, rendered as HTML with links to the source post. These pages use the active theme's header and footer.
+
+[<img src="https://img.shields.io/badge/View%20%2Fblock%2F%20in-WordPress%20Playground-3858e9?logo=wordpress&logoColor=white" alt="Launch in WordPress Playground" height="28">](https://playground.wordpress.net/?blueprint-url=https://raw.githubusercontent.com/soderlind/wp-portable-text/main/blueprint-blocks.json)
 
 | URL | Description |
 | --- | --- |
