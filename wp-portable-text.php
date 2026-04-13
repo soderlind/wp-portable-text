@@ -3,7 +3,7 @@
  * Plugin Name: WP Portable Text
  * Plugin URI:  https://github.com/soderlind/wp-portable-text
  * Description: Replaces the Gutenberg block editor with a Portable Text editor. Stores content as structured JSON, renders via PHP.
- * Version:     0.1.15
+ * Version:     0.1.16
  * Author:      Per Soderlind
  * Author URI:  https://developer.suspended.dev
  * License:     GPL-2.0-or-later
@@ -37,7 +37,7 @@ if ( file_exists( __DIR__ . '/vendor/autoload.php' ) ) {
 	} );
 }
 
-const VERSION    = '0.1.15';
+const VERSION    = '0.1.16';
 const PLUGIN_DIR = __DIR__;
 const PLUGIN_URL = null; // Resolved at runtime via plugin_dir_url().
 
@@ -55,6 +55,9 @@ function plugin_url(): string {
 /**
  * Bootstrap the plugin on plugins_loaded.
  */
+// Flush rewrite rules on activation for /block/{type}/ URLs.
+register_activation_hook( __FILE__, [ Block_Archive::class, 'flush_rules' ] );
+
 add_action(
 	'plugins_loaded',
 	static function (): void {
@@ -73,6 +76,10 @@ add_action(
 		// Phase 2: Content query API (GROQ-like).
 		$query = new Query();
 		$query->register();
+
+		// Phase 2: Block type archive pages (/block/{type}/).
+		$block_archive = new Block_Archive();
+		$block_archive->register();
 
 		// Phase 3: Migration CLI command.
 		if ( defined( 'WP_CLI' ) && WP_CLI ) {

@@ -32,7 +32,7 @@ class Query {
 	 *
 	 * @var string[]
 	 */
-	private const array BLOCK_TYPES = [
+	public const array BLOCK_TYPES = [
 		'block',
 		'image',
 		'codeBlock',

@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.16] - 2026-04-13
+
+### Added
+
+- **Block type archive pages** at `/block/{type}/` — frontend pages listing all blocks of a given type across posts, rendered as HTML with links to the source post.
+  - Index page at `/block/` listing all block types with counts.
+  - Pagination via `/block/{type}/page/2/`.
+  - Uses active theme's header/footer for native archive appearance.
+  - New `Block_Archive` class with rewrite rules and template rendering.
+
 ## [0.1.15] - 2026-04-12
 
 ### Changed
