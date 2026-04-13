@@ -186,22 +186,4 @@ posts.forEach(post => {
 ## See also
 
 - [REST API](REST.md) — Standard WordPress REST API fields and endpoints.
-
-## `/block/{type}` — Block type archive pages
-
-The plugin also provides frontend archive pages at `/block/{type}/` that display all blocks of a given type across posts, rendered as HTML with links to the source post. These pages use the active theme's header and footer.
-
-| URL | Description |
-| --- | --- |
-| `/block/` | Index page listing all block types with counts |
-| `/block/image/` | All images across all posts |
-| `/block/codeBlock/` | All code blocks across all posts |
-| `/block/block/` | All text blocks (paragraphs, headings, etc.) |
-| `/block/embed/` | All embeds |
-| `/block/table/` | All tables |
-| `/block/break/` | All break blocks |
-| `/block/image/page/2/` | Paginated results (20 per page) |
-
-Each block is rendered as HTML and includes a "From: [Post Title]" link back to the source post.
-
-The index page at `/block/` shows all available block types with the number of blocks of each type found across all posts.
+- [Block Type Archive Pages](../README.md#block-type-archive-pages) — Frontend `/block/{type}/` pages.

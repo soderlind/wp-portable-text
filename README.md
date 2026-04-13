@@ -138,6 +138,23 @@ The plugin exposes a `portable_text` field on all post types with `show_in_rest`
 
 A GROQ-like query API lets you find posts by block type, style, or annotation, and extract specific blocks (e.g., all images, all PHP code blocks) across posts. See [docs/QUERY.md](docs/QUERY.md) for endpoints and examples.
 
+## Block Type Archive Pages
+
+The plugin provides frontend archive pages at `/block/{type}/` that display all blocks of a given type across posts, rendered as HTML with links to the source post. These pages use the active theme's header and footer.
+
+| URL | Description |
+| --- | --- |
+| `/block/` | Index page listing all block types with counts |
+| `/block/image/` | All images across all posts |
+| `/block/codeBlock/` | All code blocks across all posts |
+| `/block/block/` | All text blocks (paragraphs, headings, etc.) |
+| `/block/embed/` | All embeds |
+| `/block/table/` | All tables |
+| `/block/break/` | All break blocks |
+| `/block/image/page/2/` | Paginated results (20 per page) |
+
+Each block is rendered as HTML and includes a "From: [Post Title]" link back to the source post. The index page at `/block/` shows all available block types with the number of blocks found.
+
 ## How It Works
 
 1. The plugin disables the block editor via `use_block_editor_for_post` and injects the PT editor via `edit_form_after_title`
