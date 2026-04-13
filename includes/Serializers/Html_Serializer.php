@@ -93,7 +93,7 @@ class Html_Serializer implements Serializer {
 		$code     = esc_html( $code );
 		$language = esc_attr( $block[ 'language' ] ?? '' );
 
-		$code_classes = [ 'wp-portable-text-code' ];
+		$code_classes   = [ 'wp-portable-text-code' ];
 		$language_badge = '';
 
 		if ( '' !== $language ) {

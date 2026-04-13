@@ -27,11 +27,14 @@ class RendererTest extends TestCase {
 		// Default stubs for esc_* functions used throughout rendering.
 		Functions\stubs( [
 			'esc_html' => static function ( string $s ): string {
-				return htmlspecialchars( $s, ENT_QUOTES, 'UTF-8' ); },
+				return htmlspecialchars( $s, ENT_QUOTES, 'UTF-8' );
+			},
 			'esc_url'  => static function ( string $s ): string {
-				return $s; },
+				return $s;
+			},
 			'esc_attr' => static function ( string $s ): string {
-				return htmlspecialchars( $s, ENT_QUOTES, 'UTF-8' ); },
+				return htmlspecialchars( $s, ENT_QUOTES, 'UTF-8' );
+			},
 		] );
 	}
 
