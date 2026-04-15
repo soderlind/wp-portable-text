@@ -25,7 +25,7 @@ class Query {
 	/**
 	 * REST API namespace.
 	 */
-	private const stringNAMESPACE = 'wp-portable-text/v1';
+	private const REST_NAMESPACE = 'wp-portable-text/v1';
 
 	/**
 	 * Allowed block types for the block_type parameter.
@@ -71,7 +71,7 @@ class Query {
 	 */
 	public function register_routes(): void {
 		register_rest_route(
-			self::NAMESPACE ,
+			self::REST_NAMESPACE,
 			'/query',
 			[
 				'methods'             => WP_REST_Server::READABLE,
@@ -82,7 +82,7 @@ class Query {
 		);
 
 		register_rest_route(
-			self::NAMESPACE ,
+			self::REST_NAMESPACE,
 			'/blocks',
 			[
 				'methods'             => WP_REST_Server::READABLE,
